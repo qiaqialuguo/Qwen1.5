@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 """A simple web interactive chat demo based on gradio."""
-
+import time
 from argparse import ArgumentParser
 from threading import Thread
 
@@ -12,7 +12,7 @@ import gradio as gr
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
 
-DEFAULT_CKPT_PATH = 'Qwen/Qwen1.5-7B-Chat'
+DEFAULT_CKPT_PATH = '/opt/large-model/qwen/qwen1.5/Qwen1.5-0.5B-Chat'
 
 
 def _get_args():
@@ -42,14 +42,22 @@ def _load_model_tokenizer(args):
     if args.cpu_only:
         device_map = "cpu"
     else:
-        device_map = "auto"
+        device_map = "cuda"
 
     model = AutoModelForCausalLM.from_pretrained(
         args.checkpoint_path,
         device_map=device_map,
-        resume_download=True,
+        resume_download=True
+    # , bnb_4bit_compute_dtype = torch.float16
+    # , load_in_4bit = True
     ).eval()
-    model.generation_config.max_new_tokens = 2048   # For chat.
+    model.generation_config.max_new_tokens = 512   # For chat.
+    # 在较低的温度下，我们的模型更具确定性，而在较高的温度下，则不那么确定
+    model.generation_config.temperature = 0.1
+    # 只从概率最高的 k 个单词中进行随机采样，而不考虑其他低概率的单词
+    model.generation_config.top_k = 1
+    # 只从累积概率超过某个阈值 p 的最小单词集合中进行随机采样，而不考虑其他低概率的单词
+    model.generation_config.top_p = 1
 
     return model, tokenizer
 
@@ -94,8 +102,11 @@ def _launch_demo(args, model, tokenizer):
         _chatbot.append((_query, ""))
         full_response = ""
         response = ""
+        start_time = time.time()
+        _task_history=[]
         for new_text in _chat_stream(model, tokenizer, _query, history=_task_history):
             response += new_text
+            # response = response.replace('assistant','')
             _chatbot[-1] = (_query, response)
 
             yield _chatbot
@@ -104,6 +115,9 @@ def _launch_demo(args, model, tokenizer):
         print(f"History: {_task_history}")
         _task_history.append((_query, full_response))
         print(f"Qwen1.5-Chat: {full_response}")
+        end_time = time.time()
+        print('生成耗时：', end_time - start_time, '文字长度：', len(full_response), '每秒字数：',
+              len(full_response) / (end_time - start_time))
 
     def regenerate(_chatbot, _task_history):
         if not _task_history:

@@ -16,7 +16,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
 from transformers.trainer_utils import set_seed
 
-DEFAULT_CKPT_PATH = 'Qwen/Qwen1.5-7B-Chat'
+DEFAULT_CKPT_PATH = '/opt/large-model/qwen/qwen1.5/Qwen1.5/examples/sft/output_qwen1.5'
 
 _WELCOME_MSG = '''\
 Welcome to use Qwen1.5-Chat model, type text to start chat, type :h to show command help.
