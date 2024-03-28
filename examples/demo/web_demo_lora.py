@@ -12,7 +12,7 @@ import gradio as gr
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
 
-DEFAULT_CKPT_PATH = '/opt/large-model/qwen/qwen1.5/Qwen1.5-0.5B-Chat'
+DEFAULT_CKPT_PATH = '/opt/large-model/qwen/qwen1.5/Qwen1.5-7B-Chat'
 
 
 def _get_args():
@@ -36,7 +36,7 @@ def _get_args():
 
 def _load_model_tokenizer(args):
     tokenizer = AutoTokenizer.from_pretrained(
-        args.checkpoint_path, resume_download=True,
+        '/opt/large-model/qwen/qwen1.5/Qwen1.5-4B-Chat/', resume_download=True,
     )
 
     if args.cpu_only:
@@ -55,7 +55,7 @@ def _load_model_tokenizer(args):
     # 在较低的温度下，我们的模型更具确定性，而在较高的温度下，则不那么确定
     # model.generation_config.temperature = 0.1
     # 只从概率最高的 k 个单词中进行随机采样，而不考虑其他低概率的单词
-    # model.generation_config.top_k = 1
+    model.generation_config.top_k = 1
     # 只从累积概率超过某个阈值 p 的最小单词集合中进行随机采样，而不考虑其他低概率的单词
     # model.generation_config.top_p = 1
 

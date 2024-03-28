@@ -3,3 +3,4 @@ docs/_build/
 /examples/sft/output_qwen1.5/
 /examples/sft/output_qwen1.5_1.7w/
 .idea
+/examples/sft/output_qwen1.5_lora/

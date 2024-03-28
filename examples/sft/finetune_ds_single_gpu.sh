@@ -49,8 +49,8 @@ python \
     --data_path $DATA \
     --bf16 True \
     --output_dir /opt/large-model/qwen/qwen1.5/Qwen1.5/examples/sft/output_qwen1.5 \
-    --num_train_epochs 20 \
-    --per_device_train_batch_size 10 \
+    --num_train_epochs 1 \
+    --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
     --gradient_accumulation_steps 1 \
     --evaluation_strategy "no" \
