@@ -1,5 +1,7 @@
 # 以下是给千问看的工具描述：
-TOOLS = [
+from rag.rag_tools import tool_wrapper_for_qwen_buy_car
+
+TOOL_BUY_CAR = [
     {
         'name_for_human':
             'buy_car',
