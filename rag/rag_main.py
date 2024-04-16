@@ -73,7 +73,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
 
     global history_global
     # * 3.1.3.0.处理消息
-    query, history, system, already_known_user = parse_messages(request.messages, request.user_id, history_global,already_known_user_global)
+    query, history, system, already_known_user = parse_messages(request.messages, request.user_id, history_global,
+                                                                already_known_user_global)
     already_known_user_global[request.user_id] = already_known_user
 
     conversation = [
@@ -173,8 +174,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
                   "  \033[0m\033[1;44m模式：非流式，使用rag\033[0m")
             start_time = time.time()
             start_mem = GPUtil.getGPUs()[0].memoryUsed
-            prompt = build_planning_prompt(TOOLS, query, request.user_id,already_known_user)  # 组织prompt
-            print('第一次prompt:'+prompt)
+            prompt = build_planning_prompt(TOOLS, query, request.user_id, already_known_user)  # 组织prompt
+            print('第一次prompt:' + prompt)
             model.generation_config.do_sample = False  # greedy 禁用采样，贪婪
             conversation.append({'role': 'user', 'content': prompt})
             inputs = tokenizer.apply_chat_template(
@@ -195,18 +196,18 @@ async def create_chat_completion(request: ChatCompletionRequest):
 
             response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
             print('----------------')
-            print("第一次response:"+response)
+            print("第一次response:" + response)
             print('----------------')
             # response = response.split('Observation:')[0]
             while "Final Answer:" not in response:  # 出现final Answer时结束
-                api_output,already_known_user = use_api(TOOLS, response, already_known_user)  # 抽取入参并执行api
-                already_known_user_global[request.user_id]=already_known_user
+                api_output, already_known_user = use_api(TOOLS, response, already_known_user)  # 抽取入参并执行api
+                already_known_user_global[request.user_id] = already_known_user
                 api_output = str(api_output)  # 部分api工具返回结果非字符串格式需进行转化后输出
                 if "no tool founds" == api_output:
                     break
                 print("\033[32m" + response + "\033[0m" + "\033[34m" + ' ' + api_output + "\033[0m")
                 prompt = prompt + response + ' ' + api_output  # 合并api输出
-                print('第2+次prompt：'+ prompt)
+                print('第2+次prompt：' + prompt)
                 conversation.append({'role': 'user', 'content': prompt})
                 inputs = tokenizer.apply_chat_template(
                     conversation,
@@ -233,8 +234,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
             end_mem = GPUtil.getGPUs()[0].memoryUsed
             print("\033[0;37m历史:\n[" + str(
                 ''.join([str(item) + "\n" for item in history])[:-1]) + "]\033[0m\n"
-                "\033[0;33m问题：【" + query + "】\033[0m\n"
-                "\033[0;36m回答：【" + response + "】\033[0m")
+                                                                        "\033[0;33m问题：【" + query + "】\033[0m\n"
+                                                                                                     "\033[0;36m回答：【" + response + "】\033[0m")
             print('\033[1;44m回答完毕，耗时：', end_time - start_time, '答案长度：', len(response), '每秒字数：',
                   '时间没变' if end_time == start_time else len(response) / (end_time - start_time), '输入长度:',
                   len(str(conversation)), '显存增加:',
