@@ -6,6 +6,11 @@ import numpy as np
 import requests
 from transformers.generation import LogitsProcessor
 
+from rag.prompt.buy_car.buy_car import TOOL_BUY_CAR, TOOL_DESC_BUY_CAR, REACT_PROMPT_BUY_CAR
+from rag.prompt.buy_car.used_car_valuation import TOOL_USED_CAR_VALUATION, TOOL_DESC_USED_CAR_VALUATION, \
+    REACT_PROMPT_USED_CAR_VALUATION
+from rag.rag_handler import tool_wrapper_for_qwen_buy_car, tool_wrapper_for_qwen_used_car_valuation
+
 
 def tool_wrapper_for_qwen(tool):
     def tool_(query):
@@ -75,29 +80,11 @@ def tool_wrapper_for_qwen_appointment():
 def tool_wrapper_for_qwen_name():
     def tool_(query, already_known_user):
         query = json.loads(query)["query"]
-        return '你是宝马智能机器人BAVA，你是ubiai开发的', already_known_user
+        return '你是智能机器人BAVA，你是ubiai开发的', already_known_user
 
     return tool_
 
 
-def tool_wrapper_for_qwen_buy_car():
-    def tool_(query, already_known_user):
-        query = json.loads(query)
-        for key, value in query.items():
-            already_known_user['buy_car'][key] = value
-        query = already_known_user['buy_car']
-        print(query)
-        if 'price' not in query or 'vehicle_classification' not in query or 'energy_type' not in query or (
-                query['price'] == '不限'
-                and query['vehicle_classification'] == '不限'
-                and query['energy_type'] == '不限'):
-            missing_keys = [key for key in ['price', 'vehicle_classification', 'energy_type'] if key not in query]
-            already_list = [(key, value) for key, value in already_known_user['buy_car'].items()]
-            return f"已知{already_list}，需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
-        already_known_user['buy_car'] = {}
-        return '宝马X3', already_known_user
-
-    return tool_
 
 
 # 以下是给千问看的工具描述：
@@ -133,21 +120,21 @@ TOOLS = [
     #     }],
     #     'tool_api': tool_wrapper_for_qwen(python)
     # },
-    {
-        'name_for_human':
-            'the_car_price',
-        'name_for_model':
-            'the_car_price',
-        'description_for_model':
-            "A database of car's price. 使用这个工具查询车辆的价格(price,how much，多少钱)，只在明确查询车辆的价格时使用这个工具,价格很多时整理成一个价格范围",
-        'parameters': [{
-            "name": "query",
-            "type": "string",
-            "description": "汽车的年款,品牌,车系，年款默认2024款",
-            'required': True
-        }],
-        'tool_api': tool_wrapper_for_qwen_price()
-    },
+    # {
+    #     'name_for_human':
+    #         'the_car_price',
+    #     'name_for_model':
+    #         'the_car_price',
+    #     'description_for_model':
+    #         "A database of car's price. 使用这个工具查询车辆的价格(price,how much，多少钱)，只在明确查询车辆的价格时使用这个工具,价格很多时整理成一个价格范围",
+    #     'parameters': [{
+    #         "name": "query",
+    #         "type": "string",
+    #         "description": "汽车的年款,品牌,车系，年款默认2024款",
+    #         'required': True
+    #     }],
+    #     'tool_api': tool_wrapper_for_qwen_price()
+    # },
     {
         'name_for_human':
             'the_car_configuration',
@@ -199,35 +186,36 @@ TOOLS = [
         'name_for_model':
             'buy_car',
         'description_for_model': "这是一个给用户推荐车的工具。当用户想买车或者按条件查询车的时候调用这个工具，"
-                                 "请根据上下文判断是不是买车或推荐车场景，"
-                                 "调用这个工具前需要收集用户对车的预期，对车的预期包含价位（price），车型分类（vehicle_classification），"
+                                 "请根据上下文判断是不是买车或推荐车场景，不用管上下文有没有推荐过，"
+                                 "调用这个工具前需要收集用户对车的预期，尽量提取用户说的预期，"
+                                 "对车的预期包含价位（price），车型分类（vehicle_classification），"
                                  "能源形式（energy_type），品牌类型（brand_type），车型级别（vehicle_size），座位数（number_of_seats），"
                                  "车门数（number_of_doors），车辆厢数（number_of_compartments），车辆品牌名称（vehicle_brand_name）。",
         'parameters': [{
             "name": "price",
             "type": "string",
-            "description": "价位的形式可以是X万，X万左右，X万到Y万，X万以内，X万以上或不限.其中X和Y为价格，用户没说价格的话需要追问",
+            "description": "价位的形式可以是X万，X万左右，X万到Y万，X万以内，X万以上或不限.其中X和Y为价格",
             'required': False
         }, {
             "name": "vehicle_classification",
             "type": "string",
-            "description": "车型分类可以是轿车，MPV，SUV，跑车或不限，可以多选，多选的话用英文逗号分隔，用户没说车型分类的话需要追问",
+            "description": "车型分类可以是轿车，MPV，SUV，跑车或不限，可以多选，多选的话用英文逗号分隔",
             'required': False
         }, {
             "name": "energy_type",
             "type": "string",
-            "description": "能源类型可以是燃油车，新能源，混合动力或不限，可以多选，多选的话用英文逗号分隔，用户没说能源类型的话需要追问",
+            "description": "能源类型可以是燃油车，新能源，混合动力或不限，可以多选，多选的话用英文逗号分隔",
             'required': False
         }, {
             "name": "brand_type",
             "type": "string",
-            "description": "品牌类型可以是豪华，合资，国产，新势力或不限，可以多选，多选的话用英文逗号分隔，没说品牌类型需要追问",
+            "description": "品牌类型可以是豪华，合资，国产，新势力或不限，可以多选，多选的话用英文逗号分隔",
             'required': False
         }, {
             "name": "vehicle_size",
             "type": "string",
-            "description": "车型级别可以是微型车/A00级，小型车/A0级，紧凑型车/A级，中级车/B级，中大型车/C级，"
-                           "行政级别/D级或不限，可以多选，多选的话用英文逗号分隔",
+            "description": "车型级别可以是微型车/A00级，小型车/A0级，紧凑型车/A级，中型车/B级，中大型车/C级，"
+                           "大型车/D级或不限，可以多选，多选的话用英文逗号分隔",
             'required': False
         }, {
             "name": "number_of_seats",
@@ -252,6 +240,62 @@ TOOLS = [
             'required': False
         }],
         'tool_api': tool_wrapper_for_qwen_buy_car()
+    },
+    {
+        'name_for_human':
+            'used_car_valuation',
+        'name_for_model':
+            'used_car_valuation',
+        'description_for_model': "这是一个给二手车估值的工具。当用户想对某未知车辆进行估值或卖车的时候调用这个工具，"
+                                 "返回的是评估出的车辆的价格，现在不知道用户是什么车，只能从用户说的车辆描述中提取车辆信息，车不是宝马3系，"
+                                 "调用这个工具之前必须收集用户对车的描述，从用户描述中尽量提取用户说的车辆信息，"
+                                 "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），车辆年款（vehicle_model_year），"
+                                 "车辆上牌时年份（vehicle_registration_year），车辆上牌时月份（vehicle_registration_month），"
+                                 "车辆上牌地所在城市（vehicle_registration_city），车辆里程数（vehicle_mileage），"
+                                 "车身颜色（vehicle_exterior_color）。",
+        'parameters': [{
+            "name": "vehicle_brand_name",
+            "type": "string",
+            "description": "品牌名称可以是奔驰，奥迪，日产，丰田，本田，福特，凯迪拉克，别克，标志，"
+                           "雪铁龙等任何品牌，只能有一个值",
+            'required': False
+        },{
+            "name": "vehicle_series",
+            "type": "string",
+            "description": "车系名称可以是M5，i3,宏光等任何车系，只能有一个值",
+            'required': False
+        },{
+            "name": "vehicle_model_year",
+            "type": "string",
+            "description": "车辆年款可以是2023款，2019款，2008款等，只能有一个值",
+            'required': False
+        },{
+            "name": "vehicle_registration_year",
+            "type": "string",
+            "description": "车辆上牌年份是一个具体年份，比如2016年,2020年,2021年,2023年等，只能有一个值",
+            'required': False
+        },{
+            "name": "vehicle_registration_month",
+            "type": "string",
+            "description": "车辆上牌月份是一个具体月份，比如1月,2月,11月等，只能有一个值",
+            'required': False
+        },{
+            "name": "vehicle_registration_city",
+            "type": "string",
+            "description": "车辆上牌地所在城市是一个城市名，问清楚用户是在哪个城市，只能有一个值",
+            'required': False
+        },{
+            "name": "vehicle_mileage",
+            "type": "string",
+            "description": "车辆里程数是车辆行驶了多少万公里，比如1万公里，4万公里，单位是万公里，只能有一个值",
+            'required': False
+        },{
+            "name": "vehicle_exterior_color",
+            "type": "string",
+            "description": "车身颜色是车辆的颜色，只能有一个值",
+            'required': False
+        }],
+        'tool_api': tool_wrapper_for_qwen_used_car_valuation()
     }
 
 ]
@@ -277,28 +321,75 @@ Begin!
 Question: {query}"""
 
 
-def build_planning_prompt(TOOLS, query, user_id, already_known_user):
+def build_planning_prompt(query, already_known_user):
     #  ensure_ascii=False：非ascii不会被转义
     tool_descs = []
     tool_names = []
-    for info in TOOLS:
-        tool_descs.append(
-            TOOL_DESC.format(
-                name_for_model=info['name_for_model'],
-                name_for_human=info['name_for_human'],
-                description_for_model=info['description_for_model'],
-                already_known=already_known_user['{}'.format(info['name_for_model'])],
-                parameters=json.dumps(
-                    info['parameters'], ensure_ascii=False),
+    # 计数有值的数量
+    count_values = sum(1 for value in already_known_user.values() if value)
+    if count_values > 1:
+        raise Exception("already_known_user中不止一个value有值")
+    elif count_values == 1:
+        key = [key for key, value in already_known_user.items() if value][0]
+        if "buy_car" == key:
+            # query = '已知用户预期：' + already_known_user['buy_car'] + ',用户新说的预期：' + query
+            print('进入推荐车场景')
+            info = TOOL_BUY_CAR[0]
+            tool_descs.append(
+                TOOL_DESC_BUY_CAR.format(
+                    name_for_model=info['name_for_model'],
+                    name_for_human=info['name_for_human'],
+                    description_for_model=info['description_for_model'],
+                    already_known=already_known_user['{}'.format(info['name_for_model'])],
+                    parameters=json.dumps(info['parameters'], ensure_ascii=False),
+                )
             )
-        )
-        tool_names.append(info['name_for_model'])
+            tool_names.append(info['name_for_model'])
 
-    tool_descs = '\n\n'.join(tool_descs)
-    tool_names = ','.join(tool_names)
+            tool_descs = '\n\n'.join(tool_descs)
+            tool_names = ','.join(tool_names)
 
-    prompt = REACT_PROMPT.format(tool_descs=tool_descs, tool_names=tool_names, query=query)
-    return prompt
+            prompt = REACT_PROMPT_BUY_CAR.format(tool_descs=tool_descs, tool_names=tool_names, query=query)
+            return prompt
+        elif "used_car_valuation" == key:
+            print('进入二手车估值场景')
+            info = TOOL_USED_CAR_VALUATION[0]
+            tool_descs.append(
+                TOOL_DESC_USED_CAR_VALUATION.format(
+                    name_for_model=info['name_for_model'],
+                    name_for_human=info['name_for_human'],
+                    description_for_model=info['description_for_model'],
+                    already_known=already_known_user['{}'.format(info['name_for_model'])],
+                    parameters=json.dumps(info['parameters'], ensure_ascii=False),
+                )
+            )
+            tool_names.append(info['name_for_model'])
+
+            tool_descs = '\n\n'.join(tool_descs)
+            tool_names = ','.join(tool_names)
+
+            prompt = REACT_PROMPT_USED_CAR_VALUATION.format(tool_descs=tool_descs, tool_names=tool_names, query=query)
+            return prompt
+
+    else:
+        print('无预置场景')
+        for info in TOOLS:
+            tool_descs.append(
+                TOOL_DESC.format(
+                    name_for_model=info['name_for_model'],
+                    name_for_human=info['name_for_human'],
+                    description_for_model=info['description_for_model'],
+                    already_known=already_known_user['{}'.format(info['name_for_model'])],
+                    parameters=json.dumps(info['parameters'], ensure_ascii=False),
+                )
+            )
+            tool_names.append(info['name_for_model'])
+
+        tool_descs = '\n\n'.join(tool_descs)
+        tool_names = ','.join(tool_names)
+
+        prompt = REACT_PROMPT.format(tool_descs=tool_descs, tool_names=tool_names, query=query)
+        return prompt
 
 
 def handle_already_known_user(already_known_user_detail):
@@ -311,14 +402,25 @@ def handle_already_known_user(already_known_user_detail):
         return already_known_user_detail
 
 
-def use_api(tools, response, already_known_user):
+def use_api(response, already_known_user):
     use_toolname, action_input = parse_latest_plugin_call(response)
     if use_toolname == "":
-        return "no tool founds"
-
-    used_tool_meta = list(filter(lambda x: x["name_for_model"] == use_toolname, tools))
+        return "no tool founds", already_known_user
+    # 计数有值的数量
+    count_values = sum(1 for value in already_known_user.values() if value)
+    used_tool_meta = []
+    if count_values > 1:
+        raise Exception("already_known_user中不止一个value有值")
+    elif count_values == 1:
+        key = [key for key, value in already_known_user.items() if value][0]
+        if "buy_car" == key:
+            used_tool_meta = list(filter(lambda x: x["name_for_model"] == use_toolname, TOOL_BUY_CAR))
+        elif "used_car_valuation" == key:
+            used_tool_meta = list(filter(lambda x: x["name_for_model"] == use_toolname, TOOL_USED_CAR_VALUATION))
+    else:
+        used_tool_meta = list(filter(lambda x: x["name_for_model"] == use_toolname, TOOLS))
     if len(used_tool_meta) == 0:
-        return "no tool founds"
+        return "no tool founds", already_known_user
     print('使用的工具：' + used_tool_meta[0]["name_for_model"])
     api_output, already_known_user = used_tool_meta[0]["tool_api"](action_input, already_known_user)
     return api_output, already_known_user

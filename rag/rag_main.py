@@ -57,12 +57,12 @@ async def create_chat_completion(request: ChatCompletionRequest):
         gen_kwargs['top_p'] = request.top_p
 
     stop_words = []
-    if request.use_rag:
-        stop_words = stop_words or []
-        if 'Observation:' not in stop_words:
-            stop_words.append('Observation:')
-        if 'Observation:\n' not in stop_words:
-            stop_words.append('Observation:\n')
+    # if request.use_rag:
+    stop_words = stop_words or []
+    if 'Observation:' not in stop_words:
+        stop_words.append('Observation:')
+    if 'Observation:\n' not in stop_words:
+        stop_words.append('Observation:\n')
     stop_words_ids = [tokenizer.encode(_) for _ in stop_words]
 
     stop_words_logits_processor = StopWordsLogitsProcessor(
@@ -174,7 +174,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                   "  \033[0m\033[1;44m模式：非流式，使用rag\033[0m")
             start_time = time.time()
             start_mem = GPUtil.getGPUs()[0].memoryUsed
-            prompt = build_planning_prompt(TOOLS, query, request.user_id, already_known_user)  # 组织prompt
+            prompt = build_planning_prompt(query, already_known_user)  # 组织prompt
             print('第一次prompt:' + prompt)
             model.generation_config.do_sample = False  # greedy 禁用采样，贪婪
             conversation.append({'role': 'user', 'content': prompt})
@@ -198,9 +198,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
             print('----------------')
             print("第一次response:" + response)
             print('----------------')
-            # response = response.split('Observation:')[0]
             while "Final Answer:" not in response:  # 出现final Answer时结束
-                api_output, already_known_user = use_api(TOOLS, response, already_known_user)  # 抽取入参并执行api
+                api_output, already_known_user = use_api(response, already_known_user)  # 抽取入参并执行api
                 already_known_user_global[request.user_id] = already_known_user
                 api_output = str(api_output)  # 部分api工具返回结果非字符串格式需进行转化后输出
                 if "no tool founds" == api_output:
@@ -219,7 +218,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 generated_ids = model.generate(
                     model_inputs.input_ids,
                     max_new_tokens=1024,
-                    logits_processor=logits_processor
+                    # logits_processor=logits_processor
                 )
                 generated_ids = [
                     output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
@@ -236,6 +235,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 ''.join([str(item) + "\n" for item in history])[:-1]) + "]\033[0m\n"
                                                                         "\033[0;33m问题：【" + query + "】\033[0m\n"
                                                                                                      "\033[0;36m回答：【" + response + "】\033[0m")
+            print(already_known_user)
             print('\033[1;44m回答完毕，耗时：', end_time - start_time, '答案长度：', len(response), '每秒字数：',
                   '时间没变' if end_time == start_time else len(response) / (end_time - start_time), '输入长度:',
                   len(str(conversation)), '显存增加:',

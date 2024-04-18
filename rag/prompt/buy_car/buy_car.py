@@ -1,5 +1,4 @@
-# 以下是给千问看的工具描述：
-from rag.rag_tools import tool_wrapper_for_qwen_buy_car
+from rag.rag_handler import tool_wrapper_for_qwen_buy_car
 
 TOOL_BUY_CAR = [
     {
@@ -7,9 +6,8 @@ TOOL_BUY_CAR = [
             'buy_car',
         'name_for_model':
             'buy_car',
-        'description_for_model': "这是一个给用户推荐车的工具。当用户想买车或者按条件查询车的时候调用这个工具，"
-                                 "请根据上下文判断是不是买车或推荐车场景，"
-                                 "调用这个工具前需要收集用户对车的预期，对车的预期包含价位（price），车型分类（vehicle_classification），"
+        'description_for_model': "这是一个记录用户对车辆预期的工具，最终会给用户推荐车,如果现在已知用户的部分预期，引导用户继续说其他预期。"
+                                 "请你尝试从用户说的信息中抽取出如下预期，对车的预期包含价位（price），车型分类（vehicle_classification），"
                                  "能源形式（energy_type），品牌类型（brand_type），车型级别（vehicle_size），座位数（number_of_seats），"
                                  "车门数（number_of_doors），车辆厢数（number_of_compartments），车辆品牌名称（vehicle_brand_name）。",
         'parameters': [{
@@ -25,7 +23,7 @@ TOOL_BUY_CAR = [
         }, {
             "name": "energy_type",
             "type": "string",
-            "description": "能源类型可以是燃油车，新能源，混合动力或不限，可以多选，多选的话用英文逗号分隔，用户没说能源类型的话需要追问",
+            "description": "能源类型可以是新能源车，燃油车，混合动力车或不限，可以多选，多选的话用英文逗号分隔，用户没说能源类型的话需要追问,用户说新能源时需要调用这个工具",
             'required': False
         }, {
             "name": "brand_type",
@@ -35,8 +33,8 @@ TOOL_BUY_CAR = [
         }, {
             "name": "vehicle_size",
             "type": "string",
-            "description": "车型级别可以是微型车/A00级，小型车/A0级，紧凑型车/A级，中级车/B级，中大型车/C级，"
-                           "行政级别/D级或不限，可以多选，多选的话用英文逗号分隔",
+            "description": "车型级别可以是微型车/A00级，小型车/A0级，紧凑型车/A级，中型车/B级，中大型车/C级，"
+                           "大型车/D级或不限，可以多选，多选的话用英文逗号分隔",
             'required': False
         }, {
             "name": "number_of_seats",
@@ -64,9 +62,9 @@ TOOL_BUY_CAR = [
     }
 
 ]
-TOOL_DESC = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model} Information provided by the user known so far:{already_known}. Parameters: {parameters} Format the arguments as a JSON object."""
+TOOL_DESC_BUY_CAR = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model} 目前已知用户的预期是:{already_known}. Parameters: {parameters} Format the arguments as a JSON object."""
 
-REACT_PROMPT = """Answer the following questions as best you can. You have access to the following tools:
+REACT_PROMPT_BUY_CAR = """Answer the following questions as best you can. You have access to the following tool:
 
 {tool_descs}
 
@@ -74,10 +72,10 @@ Use the following format:
 
 Question: the input question you must answer
 Thought: you should always think about what to do
-Action: the action to take, should be one of [{tool_names}]
+Action: buy_car
 Action Input: the input to the action with json formatted
 Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can be repeated zero or more times)
+... (this Thought/Action/Action Input/Observation must repeat once)
 Thought: I now know the final answer
 Final Answer: the final answer to the original input question
 
