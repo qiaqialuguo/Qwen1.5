@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 import GPUtil
 import torch
+import transformers
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -63,11 +64,11 @@ async def create_chat_completion(request: ChatCompletionRequest):
         stop_words.append('Observation:')
     if 'Observation:\n' not in stop_words:
         stop_words.append('Observation:\n')
-    stop_words_ids = [tokenizer.encode(_) for _ in stop_words]
+    stop_words_ids = [pipeline.tokenizer.encode(_) for _ in stop_words]
 
     stop_words_logits_processor = StopWordsLogitsProcessor(
         stop_words_ids=stop_words_ids,
-        eos_token_id=model.generation_config.eos_token_id,
+        eos_token_id=pipeline.tokenizer.eos_token_id,
     )
     logits_processor = LogitsProcessorList([stop_words_logits_processor])
 
@@ -125,22 +126,27 @@ async def create_chat_completion(request: ChatCompletionRequest):
             start_time = time.time()
             start_mem = GPUtil.getGPUs()[0].memoryUsed
             conversation.append({'role': 'user', 'content': query})
-            inputs = tokenizer.apply_chat_template(
+            prompt = pipeline.tokenizer.apply_chat_template(
                 conversation,
                 tokenize=False,
                 add_generation_prompt=True
             )
-            model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
 
-            generated_ids = model.generate(
-                model_inputs.input_ids,
-                max_new_tokens=1024,
-            )
-            generated_ids = [
-                output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+            terminators = [
+                pipeline.tokenizer.eos_token_id,
+                pipeline.tokenizer.convert_tokens_to_ids("<|eot_id|>")
             ]
 
-            response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+            outputs = pipeline(
+                prompt,
+                max_new_tokens=1024,
+                eos_token_id=terminators,
+                do_sample=True,
+                temperature=0.6,
+                top_p=0.9,
+            )
+
+            response = outputs[0]["generated_text"][len(prompt):]
 
             # response, _ = model.chat(tokenizer, query=query, history=history, stop_words_ids=stop_words,
             #                          system=system)
@@ -176,25 +182,29 @@ async def create_chat_completion(request: ChatCompletionRequest):
             start_mem = GPUtil.getGPUs()[0].memoryUsed
             prompt = build_planning_prompt(query, already_known_user)  # 组织prompt
             print('第一次prompt:' + prompt)
-            model.generation_config.do_sample = False  # greedy 禁用采样，贪婪
+            # model.generation_config.do_sample = False  # greedy 禁用采样，贪婪
             conversation.append({'role': 'user', 'content': prompt})
-            inputs = tokenizer.apply_chat_template(
+            prompt = pipeline.tokenizer.apply_chat_template(
                 conversation,
                 tokenize=False,
                 add_generation_prompt=True
             )
-            model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
 
-            generated_ids = model.generate(
-                model_inputs.input_ids,
-                max_new_tokens=1024,
-                logits_processor=logits_processor
-            )
-            generated_ids = [
-                output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+            terminators = [
+                pipeline.tokenizer.eos_token_id,
+                pipeline.tokenizer.convert_tokens_to_ids("<|eot_id|>")
             ]
 
-            response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+            outputs = pipeline(
+                prompt,
+                max_new_tokens=1024,
+                eos_token_id=terminators,
+                do_sample=True,
+                temperature=0.6,
+                top_p=0.9,
+            )
+
+            response = outputs[0]["generated_text"][len(prompt):]
             print('----------------')
             print("第一次response:" + response)
             print('----------------')
@@ -208,23 +218,27 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 prompt = prompt + response + ' ' + api_output  # 合并api输出
                 print('第2+次prompt：' + prompt)
                 conversation.append({'role': 'user', 'content': prompt})
-                inputs = tokenizer.apply_chat_template(
+                prompt = pipeline.tokenizer.apply_chat_template(
                     conversation,
                     tokenize=False,
                     add_generation_prompt=True
                 )
-                model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
 
-                generated_ids = model.generate(
-                    model_inputs.input_ids,
-                    max_new_tokens=1024,
-                    # logits_processor=logits_processor
-                )
-                generated_ids = [
-                    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+                terminators = [
+                    pipeline.tokenizer.eos_token_id,
+                    pipeline.tokenizer.convert_tokens_to_ids("<|eot_id|>")
                 ]
 
-                response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                outputs = pipeline(
+                    prompt,
+                    max_new_tokens=1024,
+                    eos_token_id=terminators,
+                    do_sample=True,
+                    temperature=0.6,
+                    top_p=0.9,
+                )
+
+                response = outputs[0]["generated_text"][len(prompt):]
                 print('======================')
                 print(response)
                 print('======================')
@@ -265,14 +279,12 @@ if __name__ == '__main__':
     history_global = dict()
     already_known_user_global = dict()
     # * 2.加载模型
-    tokenizer = AutoTokenizer.from_pretrained(args.checkpoint_path)
 
-    model = AutoModelForCausalLM.from_pretrained(
-        args.checkpoint_path,
-        device_map='cuda'
-        , bnb_4bit_compute_dtype=torch.float16
-        , load_in_4bit=True
-    ).eval()
-
+    pipeline = transformers.pipeline(
+        "text-generation",
+        model='/opt/large-model/llama/llama3/Meta-Llama-3-8B-Instruct',
+        model_kwargs={"torch_dtype": torch.bfloat16},
+        device="cuda",
+    )
     # * 3.运行web框架
     uvicorn.run(app, host=args.server_name, port=args.server_port, workers=1)

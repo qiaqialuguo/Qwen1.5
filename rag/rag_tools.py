@@ -21,7 +21,7 @@ def tool_wrapper_for_qwen(tool):
 
 
 def tool_wrapper_for_qwen_configuration():
-    def tool_(query, already_known_user):
+    def tool_(query, already_known_user, user_id):
         query = json.loads(query)["query"]
         response = requests.get(f'http://192.168.110.138:9169/customer-service/bava/getCarConfig?params={query}')
         # 处理响应
@@ -38,7 +38,7 @@ def tool_wrapper_for_qwen_configuration():
 
 
 def tool_wrapper_for_qwen_price():
-    def tool_(query, already_known_user):
+    def tool_(query, already_known_user, user_id):
         query = json.loads(query)["query"]
         response = requests.get(f'http://192.168.110.138:9169/customer-service/bava/getCarPrice?params={query}')
         # 处理响应
@@ -55,7 +55,7 @@ def tool_wrapper_for_qwen_price():
 
 
 def tool_wrapper_for_qwen_appointment():
-    def tool_(query, already_known_user):
+    def tool_(query, already_known_user, user_id):
         query = json.loads(query)["query"]
         # if (query == '保养' or query == '维修' or query == '修车'):
         #     query = query_user
@@ -78,7 +78,7 @@ def tool_wrapper_for_qwen_appointment():
 
 
 def tool_wrapper_for_qwen_name():
-    def tool_(query, already_known_user):
+    def tool_(query, already_known_user, user_id):
         query = json.loads(query)["query"]
         return '你是智能机器人BAVA，你是ubiai开发的', already_known_user
 
@@ -156,12 +156,11 @@ TOOLS = [
         'name_for_model':
             'the_car_appointment',
         'description_for_model':
-            "用这个工具记录下用户的预约时间和预约做什么. 使用这个工具记录用户的预约信息，至少要知道用户预约的时间和预约做什么，时间要具体到哪一天和几点钟，小于12点的话要继续问上午还是下午还是晚上，做什么包括保养（不需要问具体的保养项目）和维修（修车和换零件都属于维修），"
-            "If the user's response is not complete in terms of which day or what time, ask them for the time，要等收集全时间和做什么后，再调用这个工具。",
+            "用这个工具记录下用户的预约信息，用户想要预约时调用这个工具。",
         'parameters': [{
-            "name": "query",
+            "name": "appointment_time",
             "type": "string",
-            "description": "time（What day and what time）和做什么（做什么包含保养或维修），用空格分割",
+            "description": "time（What day and what time）",
             'required': True
         }],
         'tool_api': tool_wrapper_for_qwen_appointment()
@@ -246,9 +245,9 @@ TOOLS = [
             'used_car_valuation',
         'name_for_model':
             'used_car_valuation',
-        'description_for_model': "这是一个给二手车估值的工具。当用户想对某未知车辆进行估值或卖车的时候调用这个工具，"
-                                 "返回的是评估出的车辆的价格，现在不知道用户是什么车，只能从用户说的车辆描述中提取车辆信息，车不是宝马3系，"
-                                 "调用这个工具之前必须收集用户对车的描述，从用户描述中尽量提取用户说的车辆信息，"
+        'description_for_model': "这是一个给二手车估值的工具。当用户想对车辆进行估值或卖车的时候调用这个工具，"
+                                 "返回的是评估出的车辆的价格，目前不知道任何车辆信息，Action Input中的信息需要是用户说的，"
+                                 "调用这个工具之前必须收集用户对车的描述，从用户描述中尽量提取用户说的车辆信息，这些信息不需要全都有"
                                  "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），车辆年款（vehicle_model_year），"
                                  "车辆上牌时年份（vehicle_registration_year），车辆上牌时月份（vehicle_registration_month），"
                                  "车辆上牌地所在城市（vehicle_registration_city），车辆里程数（vehicle_mileage），"
@@ -299,7 +298,7 @@ TOOLS = [
     }
 
 ]
-TOOL_DESC = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model} Information provided by the user known so far:{already_known}. Parameters: {parameters} Format the arguments as a JSON object."""
+TOOL_DESC = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
 
 REACT_PROMPT = """Answer the following questions as best you can. You have access to the following tools:
 
@@ -402,7 +401,7 @@ def handle_already_known_user(already_known_user_detail):
         return already_known_user_detail
 
 
-def use_api(response, already_known_user):
+def use_api(response, already_known_user, user_id):
     use_toolname, action_input = parse_latest_plugin_call(response)
     if use_toolname == "":
         return "no tool founds", already_known_user
@@ -422,7 +421,7 @@ def use_api(response, already_known_user):
     if len(used_tool_meta) == 0:
         return "no tool founds", already_known_user
     print('使用的工具：' + used_tool_meta[0]["name_for_model"])
-    api_output, already_known_user = used_tool_meta[0]["tool_api"](action_input, already_known_user)
+    api_output, already_known_user = used_tool_meta[0]["tool_api"](action_input, already_known_user, user_id)
     return api_output, already_known_user
 
 
