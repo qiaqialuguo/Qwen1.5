@@ -9,70 +9,14 @@ from transformers.generation import LogitsProcessor
 from rag.prompt.buy_car.buy_car import TOOL_BUY_CAR, TOOL_DESC_BUY_CAR, REACT_PROMPT_BUY_CAR
 from rag.prompt.buy_car.used_car_valuation import TOOL_USED_CAR_VALUATION, TOOL_DESC_USED_CAR_VALUATION, \
     REACT_PROMPT_USED_CAR_VALUATION
-from rag.rag_handler import tool_wrapper_for_qwen_buy_car, tool_wrapper_for_qwen_used_car_valuation
+from rag.rag_handler import tool_wrapper_for_qwen_buy_car, tool_wrapper_for_qwen_used_car_valuation, \
+    tool_wrapper_for_qwen_appointment
 
 
 def tool_wrapper_for_qwen(tool):
     def tool_(query):
         query = json.loads(query)["query"]
         return tool.run(query)
-
-    return tool_
-
-
-def tool_wrapper_for_qwen_configuration():
-    def tool_(query, already_known_user, user_id):
-        query = json.loads(query)["query"]
-        response = requests.get(f'http://192.168.110.138:9169/customer-service/bava/getCarConfig?params={query}')
-        # 处理响应
-        if response.status_code == 200:
-            # 请求成功
-            data = response.json()  # 获取响应数据，如果是 JSON 格式
-            return str(data), already_known_user
-        else:
-            # 请求失败
-            return '查询失败，请检查', already_known_user
-        # return '车辆配置包括LED大灯、全景天窗、电动尾门、真皮座椅、自动空调，价格是21.59万'
-
-    return tool_
-
-
-def tool_wrapper_for_qwen_price():
-    def tool_(query, already_known_user, user_id):
-        query = json.loads(query)["query"]
-        response = requests.get(f'http://192.168.110.138:9169/customer-service/bava/getCarPrice?params={query}')
-        # 处理响应
-        if response.status_code == 200:
-            # 请求成功
-            data = response.json()  # 获取响应数据，如果是 JSON 格式
-            return str(data), already_known_user
-        else:
-            # 请求失败
-            return '查询失败，请检查', already_known_user
-        # return '价格是21.59万'
-
-    return tool_
-
-
-def tool_wrapper_for_qwen_appointment():
-    def tool_(query, already_known_user, user_id):
-        query = json.loads(query)["query"]
-        # if (query == '保养' or query == '维修' or query == '修车'):
-        #     query = query_user
-        #     response = requests.get(f'http://192.168.110.138:9169/customer-service/bava/appointment?params={query}')
-        # else:
-        # query_user.append(query)
-        # query = query_user
-        # print(query)
-        response = requests.get(f'http://192.168.110.138:9169/customer-service/bava/appointment?params={query}')
-        # 处理响应
-        if response.status_code == 200:
-            #     请求成功
-            #     data = response.json()  # 获取响应数据，如果是 JSON 格式
-            return response.text, already_known_user
-        else:
-            # 请求失败
-            return '抱歉，记录失败', already_known_user
 
     return tool_
 
@@ -120,49 +64,42 @@ TOOLS = [
     #     }],
     #     'tool_api': tool_wrapper_for_qwen(python)
     # },
-    # {
-    #     'name_for_human':
-    #         'the_car_price',
-    #     'name_for_model':
-    #         'the_car_price',
-    #     'description_for_model':
-    #         "A database of car's price. 使用这个工具查询车辆的价格(price,how much，多少钱)，只在明确查询车辆的价格时使用这个工具,价格很多时整理成一个价格范围",
-    #     'parameters': [{
-    #         "name": "query",
-    #         "type": "string",
-    #         "description": "汽车的年款,品牌,车系，年款默认2024款",
-    #         'required': True
-    #     }],
-    #     'tool_api': tool_wrapper_for_qwen_price()
-    # },
-    {
-        'name_for_human':
-            'the_car_configuration',
-        'name_for_model':
-            'the_car_configuration',
-        'description_for_model':
-            "A database of car's configuration. 使用这个工具查询车辆的配置(参数，车辆信息)，在明确查询车辆的配置时使用这个工具，配置信息比较多时，整理成一句话。",
-        'parameters': [{
-            "name": "query",
-            "type": "string",
-            "description": "汽车的年款,品牌,车系，年款默认2024款",
-            'required': True
-        }],
-        'tool_api': tool_wrapper_for_qwen_configuration()
-    },
     {
         'name_for_human':
             'the_car_appointment',
         'name_for_model':
             'the_car_appointment',
         'description_for_model':
-            "用这个工具记录下用户的预约信息，用户想要预约时调用这个工具。",
+            "用这个工具记录下用户的预约信息，预约信息包括预约时间（appointment_time），车辆维护类型"
+            "（vehicle_maintenance_type），车辆品牌名称（vehicle_brand_name），"
+            "4s店名称（automobile_sales_service_shop_name），"
+            "4s店地址（automobile_sales_service_shop_address），用户想要预约时调用这个工具。",
         'parameters': [{
             "name": "appointment_time",
             "type": "string",
             "description": "time（What day and what time）",
             'required': True
-        }],
+        },{
+            "name": "vehicle_maintenance_type",
+            "type": "string",
+            "description": "保养或维修二选一",
+            'required': True
+        },{
+            "name": "vehicle_brand_name",
+            "type": "string",
+            "description": "车辆品牌名称",
+            'required': True
+        },{
+            "name": "automobile_sales_service_shop_name",
+            "type": "string",
+            "description": "4s店名称",
+            'required': True
+        },{
+            "name": "automobile_sales_service_shop_address",
+            "type": "string",
+            "description": "4s店地址",
+            'required': True
+        },],
         'tool_api': tool_wrapper_for_qwen_appointment()
     },
     {

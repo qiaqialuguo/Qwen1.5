@@ -258,7 +258,7 @@ def tool_wrapper_for_qwen_used_car_valuation():
             return f"已知{already_list}，需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
         already_known_user['used_car_valuation'] = {}
 
-        query['userId'] = 'dc14f3a28d5a4a6f'
+        query['userId'] = user_id
         response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/business/usedCarValuation',json=query)
         # 处理响应
         if response.status_code == 200:
@@ -268,5 +268,30 @@ def tool_wrapper_for_qwen_used_car_valuation():
         else:
             # 请求失败
             return '查询失败，请检查', already_known_user
-        # return '估值九万九',already_known_user
+    return tool_
+
+def tool_wrapper_for_qwen_appointment():
+    def tool_(query, already_known_user, user_id):
+        query = json.loads(query)
+        for key, value in query.items():
+            already_known_user['the_car_appointment'][key] = value
+        query = already_known_user['the_car_appointment']
+        print(query)
+        if 'appointment_time' not in query:
+            missing_keys = [key for key in ['appointment_time'] if key not in query]
+            already_list = [(key, value) for key, value in already_known_user['the_car_appointment'].items()]
+            return f"已知{already_list}，需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
+        already_known_user['the_car_appointment'] = {}
+
+        query['userId'] = user_id
+        response = requests.get(f'http://192.168.110.138:9169/customer-service/bava/appointment?params={query}')
+        # 处理响应
+        if response.status_code == 200:
+            #     请求成功
+            #     data = response.json()  # 获取响应数据，如果是 JSON 格式
+            return response.text, already_known_user
+        else:
+            # 请求失败
+            return '抱歉，记录失败', already_known_user
+
     return tool_
