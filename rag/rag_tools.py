@@ -7,6 +7,8 @@ import requests
 from transformers.generation import LogitsProcessor
 
 from rag.prompt.buy_car.buy_car import TOOL_BUY_CAR, TOOL_DESC_BUY_CAR, REACT_PROMPT_BUY_CAR
+from rag.prompt.buy_car.the_car_appointment import TOOL_THE_CAR_APPOINTMENT, TOOL_DESC_THE_CAR_APPOINTMENT, \
+    REACT_PROMPT_THE_CAR_APPOINTMENT
 from rag.prompt.buy_car.used_car_valuation import TOOL_USED_CAR_VALUATION, TOOL_DESC_USED_CAR_VALUATION, \
     REACT_PROMPT_USED_CAR_VALUATION
 from rag.rag_handler import tool_wrapper_for_qwen_buy_car, tool_wrapper_for_qwen_used_car_valuation, \
@@ -25,6 +27,13 @@ def tool_wrapper_for_qwen_name():
     def tool_(query, already_known_user, user_id):
         query = json.loads(query)["query"]
         return '你是智能机器人BAVA，你是ubiai开发的', already_known_user
+
+    return tool_
+
+def tool_wrapper_for_qwen_vehicle_issues():
+    def tool_(query, already_known_user, user_id):
+        query = json.loads(query)["query"]
+        return '请咨询优必爱客服', already_known_user
 
     return tool_
 
@@ -232,6 +241,20 @@ TOOLS = [
             'required': False
         }],
         'tool_api': tool_wrapper_for_qwen_used_car_valuation()
+    },
+    {
+        'name_for_human':
+            'vehicle_issues',
+        'name_for_model':
+            'vehicle_issues',
+        'description_for_model': "当有汽车功能，汽车故障相关的问题时，调用这个工具",
+        'parameters': [{
+            "name": "query",
+            "type": "string",
+            "description": "用户的问题",
+            'required': True
+        }],
+        'tool_api': tool_wrapper_for_qwen_vehicle_issues()
     }
 
 ]
@@ -305,6 +328,25 @@ def build_planning_prompt(query, already_known_user):
             tool_names = ','.join(tool_names)
 
             prompt = REACT_PROMPT_USED_CAR_VALUATION.format(tool_descs=tool_descs, tool_names=tool_names, query=query)
+            return prompt
+        elif "the_car_appointment" == key:
+            print('进入预约场景')
+            info = TOOL_THE_CAR_APPOINTMENT[0]
+            tool_descs.append(
+                TOOL_DESC_THE_CAR_APPOINTMENT.format(
+                    name_for_model=info['name_for_model'],
+                    name_for_human=info['name_for_human'],
+                    description_for_model=info['description_for_model'],
+                    already_known=already_known_user['{}'.format(info['name_for_model'])],
+                    parameters=json.dumps(info['parameters'], ensure_ascii=False),
+                )
+            )
+            tool_names.append(info['name_for_model'])
+
+            tool_descs = '\n\n'.join(tool_descs)
+            tool_names = ','.join(tool_names)
+
+            prompt = REACT_PROMPT_THE_CAR_APPOINTMENT.format(tool_descs=tool_descs, tool_names=tool_names, query=query)
             return prompt
 
     else:

@@ -8,7 +8,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette import EventSourceResponse
-from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from rag import rag_args
 from rag.rag_handler import ChatCompletionRequest, parse_messages, ChatCompletionResponse, \
@@ -176,6 +176,9 @@ async def create_chat_completion(request: ChatCompletionRequest):
             start_mem = GPUtil.getGPUs()[0].memoryUsed
             prompt = build_planning_prompt(query, already_known_user)  # 组织prompt
             print('第一次prompt:' + prompt)
+            model.generation_config.temperature = None
+            model.generation_config.top_k = None
+            model.generation_config.top_p = None
             model.generation_config.do_sample = False  # greedy 禁用采样，贪婪
             conversation.append({'role': 'user', 'content': prompt})
             inputs = tokenizer.apply_chat_template(
