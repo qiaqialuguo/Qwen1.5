@@ -5,9 +5,13 @@ import requests
 
 def tool_wrapper_for_qwen_appointment():
     def tool_(query, already_known_user, user_id):
-        query = json.loads(query)
+        try:
+            query = json.loads(query)
+        except:
+            query = {}
         for key, value in query.items():
-            already_known_user['the_car_appointment'][key] = value
+            if '' != value:
+                already_known_user['the_car_appointment'][key] = value
         query = already_known_user['the_car_appointment']
         print(query)
         if 'appointment_time' not in query:

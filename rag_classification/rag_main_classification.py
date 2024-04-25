@@ -1,6 +1,7 @@
 import datetime
 import time
 from contextlib import asynccontextmanager
+from copy import deepcopy
 
 import GPUtil
 import torch
@@ -13,15 +14,17 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers.generation.logits_process import LogitsProcessorList
 
 from rag_classification import rag_args_classification
+from rag_classification.api_tools.tool_name import tool_wrapper_for_qwen_name
 from rag_classification.rag_handler_classification import ChatCompletionRequest, ChatCompletionResponse, \
     StopWordsLogitsProcessor, parse_messages, _gc, ChatCompletionResponseChoice, ChatMessage, trim_stop_words
-from rag_classification.rag_tools_classification import build_planning_prompt
+from rag_classification.rag_tools_classification import build_planning_prompt, use_api
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # collects GPU memory
     yield
     _gc(args=args, forced=True)
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -33,6 +36,7 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+
 
 @app.post('/v1/chat/completions', response_model=ChatCompletionResponse)
 async def create_chat_completion(request: ChatCompletionRequest):
@@ -83,7 +87,9 @@ async def create_chat_completion(request: ChatCompletionRequest):
                   "  \033[0m\033[1;44m模式：非流式，使用rag\033[0m")
             start_time = time.time()
             start_mem = GPUtil.getGPUs()[0].memoryUsed
-            if already_known_user['scene'] == 'no_scene':
+            prompt = ''
+            response = ''
+            if already_known_user['scene'] == '':
                 print('组织分类prompt')
                 prompt = build_planning_prompt(query, already_known_user)  # 组织prompt
                 conversation.append({'role': 'user', 'content': prompt})
@@ -106,19 +112,20 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 classify_time = time.time()
                 classify_mem = GPUtil.getGPUs()[0].memoryUsed
                 print('\033[1;37m分类耗时：', classify_time - start_time, '结果长度：', len(response), '每秒字数：',
-                      '时间没变' if classify_time == start_time else len(response) / (classify_time - start_time), '输入长度:',
+                      '时间没变' if classify_time == start_time else len(response) / (classify_time - start_time),
+                      '输入长度:',
                       len(str(conversation)), '显存增加:',
                       (classify_mem - start_mem) / 1024, 'G\033[0m')
-                print('\033[1;37m分类结果：'+response+'\033[0m')
+                print('\033[1;37m分类结果：' + response + '\033[0m')
                 # 删掉分类的prompt
-                conversation.pop(len(conversation)-1)
+                conversation.pop(len(conversation) - 1)
                 # 如果正确分类
                 if 0 <= i:
                     plugin_name = response[i + len('\nScene:'):].strip()
                     already_known_user['scene'] = plugin_name
                 # 如果没正确分类
                 else:
-                    response = '目前没有处理分类异常，请将问题反馈给宪一处理。异常分类情况：'+response
+                    response = '目前没有处理分类异常，请将问题反馈给宪一处理。异常分类情况：' + response
                     choice_data = ChatCompletionResponseChoice(
                         index=0,
                         message=ChatMessage(role='assistant', content=response),
@@ -130,50 +137,208 @@ async def create_chat_completion(request: ChatCompletionRequest):
             # 进入具体场景问答
             start_time = time.time()
             start_mem = GPUtil.getGPUs()[0].memoryUsed
-            prompt = build_planning_prompt(query, already_known_user)  # 组织prompt
-            conversation.append({'role': 'user', 'content': prompt})
-            inputs = tokenizer.apply_chat_template(
-                conversation,
-                tokenize=False,
-                add_generation_prompt=True
-            )
-            model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
-            generated_ids = model.generate(
-                model_inputs.input_ids,
-                max_new_tokens=1024,
-                logits_processor=logits_processor
-            )
-            generated_ids = [
-                output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-            ]
-            response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-            # todo 有问题
-            end_time = time.time()
-            end_mem = GPUtil.getGPUs()[0].memoryUsed
-            print("\033[0;37m历史:\n[" + str(
-                ''.join([str(item) + "\n" for item in history])[:-1]) + "]\033[0m\n"
-                                                                        "\033[0;33m问题：【" + query + "】\033[0m\n"
-                                                                                                     "\033[0;36m回答：【" + response + "】\033[0m")
-            print(already_known_user)
-            print('\033[1;44m回答完毕，耗时：', end_time - start_time, '答案长度：', len(response), '每秒字数：',
-                  '时间没变' if end_time == start_time else len(response) / (end_time - start_time), '输入长度:',
-                  len(str(conversation)), '显存增加:',
-                  (end_mem - start_mem) / 1024, 'G\033[0m')
-            _gc(args=args)
-            response = response.split('Final Answer:')[-1]
-            history.append((query, response))
-            # history.append((query, api_output))  # api返回的放在后面，很重要
-            history_global[request.user_id] = history
+            # prompt = build_planning_prompt(query, already_known_user)  # 组织prompt
+            conversation_scene = deepcopy(conversation)  # 提取关键字时清空历史
+            #  如果直接调用模型
+            if 'no_scene' == already_known_user['scene']:
+                model.generation_config.temperature = 0.7
+                model.generation_config.top_k = 20
+                model.generation_config.top_p = 0.8
+                model.generation_config.do_sample = True  # 问答有随机性
+                conversation_scene.append({'role': 'user', 'content': query})
+                #  请求模型
+                inputs = tokenizer.apply_chat_template(
+                    conversation_scene,
+                    tokenize=False,
+                    add_generation_prompt=True
+                )
+                model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
+                generated_ids = model.generate(
+                    model_inputs.input_ids,
+                    max_new_tokens=1024,
+                    logits_processor=logits_processor
+                )
+                generated_ids = [
+                    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+                ]
+                response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
 
-            response = trim_stop_words(response, stop_words)
-            choice_data = ChatCompletionResponseChoice(
-                index=0,
-                message=ChatMessage(role='assistant', content=response),
-                finish_reason='stop',
-            )
-            return ChatCompletionResponse(model=request.model,
-                                          choices=[choice_data],
-                                          object='chat.completion')
+                end_time = time.time()
+                end_mem = GPUtil.getGPUs()[0].memoryUsed
+                print("\033[0;37m历史:\n[" + str(
+                    ''.join([str(item) + "\n" for item in history])[:-1]) + "]\033[0m\n"
+                                                                            "\033[0;33m问题：【" + query + "】\033[0m\n"
+                                                                                                         "\033[0;36m回答：【" + response + "】\033[0m")
+                print(already_known_user)
+                print('\033[1;44m回答完毕，耗时：', end_time - start_time, '答案长度：', len(response), '每秒字数：',
+                      '时间没变' if end_time == start_time else len(response) / (end_time - start_time), '输入长度:',
+                      len(str(conversation_scene)), '显存增加:',
+                      (end_mem - start_mem) / 1024, 'G\033[0m')
+                _gc(args=args)
+                # response = response.split('Final Answer:')[-1]
+                history.append((query, response))
+                history_global[request.user_id] = history
+
+                response = trim_stop_words(response, stop_words)
+                choice_data = ChatCompletionResponseChoice(
+                    index=0,
+                    message=ChatMessage(role='assistant', content=response),
+                    finish_reason='stop',
+                )
+                #  场景复原
+                already_known_user['scene'] = ''
+                already_known_user_global[request.user_id] = already_known_user
+                return ChatCompletionResponse(model=request.model,
+                                              choices=[choice_data],
+                                              object='chat.completion')
+            # 不需要提取直接调用API
+            elif already_known_user['scene'] in ['name', 'vehicle_issues']:
+                model.generation_config.temperature = 0.7
+                model.generation_config.top_k = 20
+                model.generation_config.top_p = 0.8
+                model.generation_config.do_sample = True  # 问答有随机性
+                prompt = build_planning_prompt(query, already_known_user)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
+                api_output, already_known_user = use_api(response, already_known_user, request.user_id,query)  # 抽取入参并执行api
+                already_known_user_global[request.user_id] = already_known_user
+                prompt = prompt.replace('_api_output_', api_output)
+                print(prompt)
+                conversation_scene.append({'role': 'user', 'content': prompt})
+                #  请求模型
+                inputs = tokenizer.apply_chat_template(
+                    conversation_scene,
+                    tokenize=False,
+                    add_generation_prompt=True
+                )
+                model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
+                generated_ids = model.generate(
+                    model_inputs.input_ids,
+                    max_new_tokens=1024,
+                    # logits_processor=logits_processor
+                )
+                generated_ids = [
+                    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+                ]
+                response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+
+                end_time = time.time()
+                end_mem = GPUtil.getGPUs()[0].memoryUsed
+                print("\033[0;37m历史:\n[" + str(
+                    ''.join([str(item) + "\n" for item in history])[:-1]) + "]\033[0m\n"
+                                                                            "\033[0;33m问题：【" + query + "】\033[0m\n"
+                                                                                                         "\033[0;36m回答：【" + response + "】\033[0m")
+                print(already_known_user)
+                print('\033[1;44m回答完毕，耗时：', end_time - start_time, '答案长度：', len(response), '每秒字数：',
+                      '时间没变' if end_time == start_time else len(response) / (end_time - start_time), '输入长度:',
+                      len(str(conversation_scene)), '显存增加:',
+                      (end_mem - start_mem) / 1024, 'G\033[0m')
+                _gc(args=args)
+                response = response.split('Final Answer:')[-1]
+                history.append((query, response))
+                history_global[request.user_id] = history
+
+                response = trim_stop_words(response, stop_words)
+                choice_data = ChatCompletionResponseChoice(
+                    index=0,
+                    message=ChatMessage(role='assistant', content=response),
+                    finish_reason='stop',
+                )
+                return ChatCompletionResponse(model=request.model,
+                                              choices=[choice_data],
+                                              object='chat.completion')
+            # 如果要抽取信息
+            elif already_known_user['scene'] in ['buy_car', 'used_car_valuation', 'the_car_appointment']:
+                model.generation_config.temperature = None
+                model.generation_config.top_k = None
+                model.generation_config.top_p = None
+                model.generation_config.do_sample = False  # greedy 禁用采样，贪婪
+                prompt = build_planning_prompt(query, already_known_user)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
+                conversation_scene = [{'role': 'system', 'content': '你要对用户话中的信息进行抽取并格式化成JSON'}]
+                conversation_scene.append({'role': 'user', 'content': prompt})
+                # 模型进行抽取
+                inputs = tokenizer.apply_chat_template(
+                    conversation_scene,
+                    tokenize=False,
+                    add_generation_prompt=True
+                )
+                model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
+                generated_ids = model.generate(
+                    model_inputs.input_ids,
+                    max_new_tokens=1024,
+                )
+                generated_ids = [
+                    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+                ]
+                response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                j = response.rfind('\nJson_Formatted:')
+                classify_time = time.time()
+                classify_mem = GPUtil.getGPUs()[0].memoryUsed
+                print('\033[1;37m抽取耗时：', classify_time - start_time, '结果长度：', len(response), '每秒字数：',
+                      '时间没变' if classify_time == start_time else len(response) / (classify_time - start_time),
+                      '输入长度:',
+                      len(str(conversation_scene)), '显存增加:',
+                      (classify_mem - start_mem) / 1024, 'G\033[0m')
+                print('\033[1;37m抽取结果：' + response + '\033[0m')
+                # 如果正确抽取
+                # if 0 <= j:
+                json_formatted = response[j + len('\nJson_Formatted:'):].strip()
+                api_output, already_known_user = use_api(response, already_known_user, request.user_id, json_formatted)  # 抽取入参并执行api
+                already_known_user_global[request.user_id] = already_known_user
+                print('api返回结果：'+api_output)
+                # 对结果整理话术
+                prompt = 'User Question:' + query + ',查询后的结果：' + api_output + '。请回答用户的问题'
+                conversation_scene = [{'role': 'system', 'content': system}]
+                conversation_scene.append({'role': 'user', 'content': prompt})
+                inputs = tokenizer.apply_chat_template(
+                    conversation_scene,
+                    tokenize=False,
+                    add_generation_prompt=True
+                )
+                model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
+                generated_ids = model.generate(
+                    model_inputs.input_ids,
+                    max_new_tokens=1024,
+                )
+                generated_ids = [
+                    output_ids[len(input_ids):] for input_ids, output_ids in
+                    zip(model_inputs.input_ids, generated_ids)
+                ]
+                response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                end_time = time.time()
+                end_mem = GPUtil.getGPUs()[0].memoryUsed
+                print("\033[0;37m历史:\n[" + str(
+                    ''.join([str(item) + "\n" for item in history])[:-1]) + "]\033[0m\n"
+                                                                            "\033[0;33m问题：【" + query + "】\033[0m\n"
+                                                                                                         "\033[0;36m回答：【" + response + "】\033[0m")
+                print(already_known_user)
+                print('\033[1;44m回答完毕，耗时：', end_time - start_time, '答案长度：', len(response), '每秒字数：',
+                      '时间没变' if end_time == start_time else len(response) / (end_time - start_time),
+                      '输入长度:',
+                      len(str(conversation_scene)), '显存增加:',
+                      (end_mem - start_mem) / 1024, 'G\033[0m')
+                _gc(args=args)
+                # response = response.split('Final Answer:')[-1]
+                history.append((query, response))
+                history_global[request.user_id] = history
+                response = trim_stop_words(response, stop_words)
+                choice_data = ChatCompletionResponseChoice(
+                    index=0,
+                    message=ChatMessage(role='assistant', content=response),
+                    finish_reason='stop',
+                )
+                return ChatCompletionResponse(model=request.model,
+                                              choices=[choice_data],
+                                              object='chat.completion')
+                # # 如果没正确抽取
+                # else:
+                #     response = '目前没有处理抽取异常，请将问题反馈给宪一处理。异常抽取情况：' + response
+                #     choice_data = ChatCompletionResponseChoice(
+                #         index=0,
+                #         message=ChatMessage(role='assistant', content=response),
+                #         finish_reason='stop',
+                #     )
+                #     return ChatCompletionResponse(model=request.model,
+                #                                   choices=[choice_data],
+                #                                   object='chat.completion')
 
 
 if __name__ == '__main__':

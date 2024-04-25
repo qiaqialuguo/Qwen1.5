@@ -10,8 +10,8 @@ TOOL_USED_CAR_VALUATION = [
                                  "返回的是评估出的车辆的价格，只能从用户说的车辆描述中提取车辆信息，"
                                  "调用这个工具之前需要收集用户对车的描述，尽量提取用户说的车辆信息，"
                                  "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），车辆年款（vehicle_model_year），"
-                                 "车辆上牌时年份（vehicle_registration_year），车辆上牌时月份（vehicle_registration_month），"
-                                 "车辆上牌地所在城市（vehicle_registration_city），车辆里程数（vehicle_mileage），"
+                                 "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
+                                 "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"
                                  "车身颜色（vehicle_exterior_color）。",
         'parameters': [{
             "name": "vehicle_brand_name",
@@ -29,17 +29,17 @@ TOOL_USED_CAR_VALUATION = [
             "description": "车辆年款可以是2023款，2019款，2008款等，只能有一个值",
             'required': False
         },{
-            "name": "vehicle_registration_year",
+            "name": "vehicle_licensing_year",
             "type": "string",
             "description": "车辆上牌年份是一个具体年份，比如2016年,2020年,2021年,2023年等，只能有一个值",
             'required': False
         }, {
-            "name": "vehicle_registration_month",
+            "name": "vehicle_licensing_month",
             "type": "string",
             "description": "车辆上牌月份是一个具体月份，比如1月,2月,11月等，只能有一个值",
             'required': False
         }, {
-            "name": "vehicle_registration_city",
+            "name": "vehicle_licensing_city",
             "type": "string",
             "description": "车辆上牌地所在城市是一个城市名，问清楚用户是在哪个城市，只能有一个值",
             'required': False

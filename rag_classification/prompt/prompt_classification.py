@@ -33,7 +33,7 @@ TOOLS = [
             'vehicle_issues',
         'name_for_model':
             'vehicle_issues',
-        'description_for_model': "当用户问汽车功能，汽车故障相关的问题时，进入这个场景",
+        'description_for_model': "当用户问汽车功能，汽车故障等任何汽车相关的问题时，进入这个场景",
     },
     {
         'name_for_human':

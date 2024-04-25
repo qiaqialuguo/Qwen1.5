@@ -1,4 +1,4 @@
-from rag.rag_handler import tool_wrapper_for_qwen_appointment
+from rag_classification.api_tools.tool_the_car_appointment import tool_wrapper_for_qwen_appointment
 
 TOOL_THE_CAR_APPOINTMENT = [
     {
@@ -41,22 +41,17 @@ TOOL_THE_CAR_APPOINTMENT = [
     }
 
 ]
-TOOL_DESC_THE_CAR_APPOINTMENT = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model} 目前已知用户的描述是:{already_known}. Parameters: {parameters} Format the arguments as a JSON object."""
+TOOL_DESC_THE_CAR_APPOINTMENT = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
 
-REACT_PROMPT_THE_CAR_APPOINTMENT = """Answer the following questions as best you can. You have access to the following tool:
+REACT_PROMPT_THE_CAR_APPOINTMENT = """Extracting information as best you can. You have access to the following tool:
 
 {tool_descs}
 
 Use the following format:
 
-Question: the input question you must answer
+Question: the input information you must extract
 Thought: you should always think about what to do
-Action: buy_car
-Action Input: the input to the action with json formatted
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation must repeat only once)
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question
+Json_Formatted: the extracting information with json formatted
 
 Begin!
 

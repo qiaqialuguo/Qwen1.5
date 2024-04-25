@@ -89,7 +89,7 @@ def parse_messages(messages, user_id, history_global, already_known_user_global)
     else:
         history = []
 
-    already_known_user = {'scene': 'no_scene'}
+    already_known_user = {'scene': ''}
     if user_id in already_known_user_global:
         already_known_user = already_known_user_global[user_id]
         print('already_known_user:'+str(already_known_user))
