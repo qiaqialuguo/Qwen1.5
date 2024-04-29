@@ -6,8 +6,9 @@ model_id = "/opt/large-model/llama/llama3/Meta-Llama-3-8B-Instruct"
 pipeline = transformers.pipeline(
     "text-generation",
     model=model_id,
-    model_kwargs={"torch_dtype": torch.bfloat16},
-    device="cuda",
+    # model_kwargs={"torch_dtype": torch.bfloat16},
+torch_dtype=torch.bfloat16,
+    device="cuda"
 )
 
 messages = [
@@ -16,9 +17,10 @@ messages = [
 ]
 
 prompt = pipeline.tokenizer.apply_chat_template(
-		messages,
-		tokenize=False,
-		add_generation_prompt=True
+    messages,
+    tokenize=False,
+    add_generation_prompt=True
+
 )
 
 terminators = [

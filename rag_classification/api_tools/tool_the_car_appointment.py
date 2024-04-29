@@ -4,7 +4,7 @@ import requests
 
 
 def tool_wrapper_for_qwen_appointment():
-    def tool_(query, already_known_user, user_id):
+    def tool_(query, already_known_user, user_id, original_question=None):
         try:
             query = json.loads(query)
         except:
@@ -17,10 +17,17 @@ def tool_wrapper_for_qwen_appointment():
         if 'appointment_time' not in query:
             missing_keys = [key for key in ['appointment_time'] if key not in query]
             already_list = [(key, value) for key, value in already_known_user['the_car_appointment'].items()]
-            return f"已知{already_list}，需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
-
+            mapping_dict = {}
+            mapping_dict['appointment_time'] = '预约时间'
+            mapping_dict['vehicle_maintenance_type'] = '车辆维护类型'
+            mapping_dict['vehicle_brand_name'] = '车辆品牌名称'
+            mapping_dict['automobile_sales_service_shop_name'] = '4s店名称'
+            mapping_dict['automobile_sales_service_shop_address'] = '4s店地址'
+            missing_keys = [mapping_dict[item] if item in mapping_dict else item for item in missing_keys]
+            return f"用户正在预约，需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
         query['userId'] = user_id
         response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/appointment/toStore', json=query)
+        already_known_user['scene'] = ''
         # 处理响应
         if response.status_code == 200:
             #     请求成功

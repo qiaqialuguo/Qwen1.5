@@ -1,12 +1,12 @@
 from rag_classification.api_tools.tool_buy_car import tool_wrapper_for_qwen_buy_car
 
-TOOL_BUY_CAR = [
+TOOL_BUY_CAR_FINAL = [
     {
         'name_for_human':
             'buy_car',
         'name_for_model':
             'buy_car',
-        'description_for_model': "这是一个记录用户对车辆预期的工具，请你尝试从用户说的话中抽取出如下预期，然后调用这个工具，"
+        'description_for_model': "这是一个给用户推荐车的工具，在用户想要买车或找车时使用这个工具，"
                                  "对车的预期包含价位/预算（price），车型分类（vehicle_classification），"
                                  "能源形式（energy_type），品牌类型（brand_type），车型级别（vehicle_size），座位数（number_of_seats），"
                                  "车门数（number_of_doors），车辆厢数（number_of_compartments），车辆品牌名称（vehicle_brand_name）。",
@@ -62,18 +62,28 @@ TOOL_BUY_CAR = [
     }
 
 ]
-TOOL_DESC_BUY_CAR = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
+TOOL_DESC_BUY_CAR_FINAL = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
 
-REACT_PROMPT_BUY_CAR = """Extracting information as best you can. You have access to the following tool:
+REACT_PROMPT_BUY_CAR_FINAL = """Answer the following questions as best you can. You have access to the following tools:
 
 {tool_descs}
 
 Use the following format:
 
-Question: the input information you must extract
+Question: the input question you must answer
 Thought: you should always think about what to do
-Extracted_Json: the extracting information with json formatted
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action with json formatted
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can be repeated zero or more times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
 
 Begin!
 
-Question: {query}"""
+Question: {query}
+Thought:我将调用buy_car工具来获取车辆信息
+Action: buy_car
+Action Input:{Extracted_Json}
+Observation:{api_output}
+"""

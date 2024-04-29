@@ -1,4 +1,5 @@
 import datetime
+import json
 import time
 from contextlib import asynccontextmanager
 from copy import deepcopy
@@ -17,7 +18,7 @@ from rag_classification import rag_args_classification
 from rag_classification.api_tools.tool_name import tool_wrapper_for_qwen_name
 from rag_classification.rag_handler_classification import ChatCompletionRequest, ChatCompletionResponse, \
     StopWordsLogitsProcessor, parse_messages, _gc, ChatCompletionResponseChoice, ChatMessage, trim_stop_words
-from rag_classification.rag_tools_classification import build_planning_prompt, use_api
+from rag_classification.rag_tools_classification import build_planning_prompt, use_api, build_planning_prompt_final
 
 
 @asynccontextmanager
@@ -121,7 +122,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 conversation.pop(len(conversation) - 1)
                 # 如果正确分类
                 if 0 <= i:
-                    plugin_name = response[i + len('\nScene:'):].strip()
+                    plugin_name = response[i + len('\nScene:'):].strip().split('\n')[0]
                     already_known_user['scene'] = plugin_name
                 # 如果没正确分类
                 else:
@@ -165,6 +166,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
 
                 end_time = time.time()
                 end_mem = GPUtil.getGPUs()[0].memoryUsed
+                #  场景复原
+                already_known_user['scene'] = ''
                 print("\033[0;37m历史:\n[" + str(
                     ''.join([str(item) + "\n" for item in history])[:-1]) + "]\033[0m\n"
                                                                             "\033[0;33m问题：【" + query + "】\033[0m\n"
@@ -185,20 +188,19 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     message=ChatMessage(role='assistant', content=response),
                     finish_reason='stop',
                 )
-                #  场景复原
-                already_known_user['scene'] = ''
                 already_known_user_global[request.user_id] = already_known_user
                 return ChatCompletionResponse(model=request.model,
                                               choices=[choice_data],
                                               object='chat.completion')
             # 不需要提取直接调用API
-            elif already_known_user['scene'] in ['name', 'vehicle_issues']:
+            elif already_known_user['scene'] in ['name']:
                 model.generation_config.temperature = 0.7
                 model.generation_config.top_k = 20
                 model.generation_config.top_p = 0.8
                 model.generation_config.do_sample = True  # 问答有随机性
                 prompt = build_planning_prompt(query, already_known_user)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
-                api_output, already_known_user = use_api(response, already_known_user, request.user_id,query)  # 抽取入参并执行api
+                api_output, already_known_user = use_api(response, already_known_user, request.user_id,
+                                                         query)  # 抽取入参并执行api
                 already_known_user_global[request.user_id] = already_known_user
                 prompt = prompt.replace('_api_output_', api_output)
                 print(prompt)
@@ -246,7 +248,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
                                               choices=[choice_data],
                                               object='chat.completion')
             # 如果要抽取信息
-            elif already_known_user['scene'] in ['buy_car', 'used_car_valuation', 'the_car_appointment']:
+            elif already_known_user['scene'] in ['buy_car', 'used_car_valuation',
+                                                 'the_car_appointment', 'vehicle_issues']:
                 model.generation_config.temperature = None
                 model.generation_config.top_k = None
                 model.generation_config.top_p = None
@@ -254,6 +257,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 prompt = build_planning_prompt(query, already_known_user)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
                 conversation_scene = [{'role': 'system', 'content': '你要对用户话中的信息进行抽取并格式化成JSON'}]
                 conversation_scene.append({'role': 'user', 'content': prompt})
+                print(prompt)
                 # 模型进行抽取
                 inputs = tokenizer.apply_chat_template(
                     conversation_scene,
@@ -269,7 +273,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
                 ]
                 response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
-                j = response.rfind('\nJson_Formatted:')
+                j = response.rfind('\nExtracted_Json:')
                 classify_time = time.time()
                 classify_mem = GPUtil.getGPUs()[0].memoryUsed
                 print('\033[1;37m抽取耗时：', classify_time - start_time, '结果长度：', len(response), '每秒字数：',
@@ -280,12 +284,18 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 print('\033[1;37m抽取结果：' + response + '\033[0m')
                 # 如果正确抽取
                 # if 0 <= j:
-                json_formatted = response[j + len('\nJson_Formatted:'):].strip()
-                api_output, already_known_user = use_api(response, already_known_user, request.user_id, json_formatted)  # 抽取入参并执行api
+                Extracted_Json = response[j + len('\nExtracted_Json:'):].strip()
+                scene = already_known_user['scene']  # 在清空前获取场景
+                Extracted_Json_already = deepcopy(already_known_user[scene])
+                Extracted_Json_already.pop('userId') if 'userId' in Extracted_Json_already else None
+                api_output, already_known_user = use_api(response, already_known_user, request.user_id,
+                                                         Extracted_Json,query)  # 抽取入参并执行api
                 already_known_user_global[request.user_id] = already_known_user
-                print('api返回结果：'+api_output)
+                print('api返回结果：' + api_output)
                 # 对结果整理话术
-                prompt = 'User Question:' + query + ',查询后的结果：' + api_output + '。请回答用户的问题'
+                Extracted_Json = {**Extracted_Json_already, **json.loads(Extracted_Json)}
+                prompt = build_planning_prompt_final(query, scene, Extracted_Json, api_output)
+                print(prompt)
                 conversation_scene = [{'role': 'system', 'content': system}]
                 conversation_scene.append({'role': 'user', 'content': prompt})
                 inputs = tokenizer.apply_chat_template(
@@ -294,6 +304,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     add_generation_prompt=True
                 )
                 model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
+                model.generation_config.temperature = 0.7
+                model.generation_config.top_k = 20
+                model.generation_config.top_p = 0.8
+                model.generation_config.do_sample = True  # 问答有随机性
                 generated_ids = model.generate(
                     model_inputs.input_ids,
                     max_new_tokens=1024,
@@ -303,6 +317,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     zip(model_inputs.input_ids, generated_ids)
                 ]
                 response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                response = response.split('Final Answer:')[-1]
                 end_time = time.time()
                 end_mem = GPUtil.getGPUs()[0].memoryUsed
                 print("\033[0;37m历史:\n[" + str(

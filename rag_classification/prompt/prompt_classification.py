@@ -26,7 +26,7 @@ TOOLS = [
         'name_for_model':
             'the_car_appointment',
         'description_for_model':
-            "用户想要预约时进入这个场景。",
+            "用户想要预约车辆服务时进入这个场景。",
     },
     {
         'name_for_human':

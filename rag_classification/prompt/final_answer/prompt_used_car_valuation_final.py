@@ -1,13 +1,13 @@
 from rag_classification.api_tools.tool_used_car_valuation import tool_wrapper_for_qwen_used_car_valuation
 
-TOOL_USED_CAR_VALUATION = [
+TOOL_USED_CAR_VALUATION_FINAL = [
     {
         'name_for_human':
             'used_car_valuation',
         'name_for_model':
             'used_car_valuation',
         'description_for_model': "这是一个给二手车估值的工具。当用户想对车辆进行估值或卖车的时候调用这个工具，"
-                                 "返回的是评估出的车辆的价格，从用户说的问题中提取车辆信息，"
+                                 "返回的是评估出的车辆的价格，"
                                  "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），车辆年款（vehicle_model_year），"
                                  "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
                                  "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"
@@ -57,18 +57,28 @@ TOOL_USED_CAR_VALUATION = [
     }
 
 ]
-TOOL_DESC_USED_CAR_VALUATION = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
+TOOL_DESC_USED_CAR_VALUATION_FINAL = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
 
-REACT_PROMPT_USED_CAR_VALUATION = """Extracting information as best you can. You have access to the following tool:
+REACT_PROMPT_USED_CAR_VALUATION_FINAL = """Answer the following questions as best you can. You have access to the following tools:
 
 {tool_descs}
 
 Use the following format:
 
-Question: the input information you must extract
+Question: the input question you must answer
 Thought: you should always think about what to do
-Extracted_Json: the extracting information with json formatted
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action with json formatted
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can be repeated zero or more times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
 
 Begin!
 
-Question: {query}"""
+Question: {query}
+Thought:我将调用used_car_valuation工具来对车辆进行估值
+Action: used_car_valuation
+Action Input:{Extracted_Json}
+Observation:{api_output}
+"""

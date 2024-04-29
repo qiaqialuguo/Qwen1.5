@@ -1,6 +1,6 @@
 from rag_classification.api_tools.tool_vehicle_issues import tool_wrapper_for_qwen_vehicle_issues
 
-TOOL_VEHICLE_ISSUES = [
+TOOL_VEHICLE_ISSUES_FINAL = [
     {
         'name_for_human':
             'vehicle_issues',
@@ -34,9 +34,9 @@ TOOL_VEHICLE_ISSUES = [
     }
 
 ]
-TOOL_DESC_VEHICLE_ISSUES = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
+TOOL_DESC_VEHICLE_ISSUES_FINAL = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
 
-REACT_PROMPT_VEHICLE_ISSUES = """Extracting information as best you can. You have access to the following tool:
+REACT_PROMPT_VEHICLE_ISSUES_FINAL = """Extracting information as best you can. You have access to the following tool:
 
 {tool_descs}
 
