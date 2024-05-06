@@ -6,12 +6,11 @@ TOOL_VEHICLE_ISSUES_FINAL = [
             'vehicle_issues',
         'name_for_model':
             'vehicle_issues',
-        'description_for_model': "这个工具来提取用户问题中的车辆信息，如果问题中没有提到车辆信息，"
-                                 "has_vehicle_information为False，提到了车辆信息则为True，"
-                                 "并在JSON中记录用户说的车辆信息.",
+        'description_for_model': "回答用户汽车功能，汽车故障等任何汽车相关的问题时，用这个工具，"
+                                 "用户说车辆信息时也提取车辆信息.",
         'parameters': [{
             "name": "has_vehicle_information",
-            "type": "boolean",
+            "type": "string",
             "description": "True or False",
             'required': True
         },{
@@ -36,16 +35,26 @@ TOOL_VEHICLE_ISSUES_FINAL = [
 ]
 TOOL_DESC_VEHICLE_ISSUES_FINAL = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
 
-REACT_PROMPT_VEHICLE_ISSUES_FINAL = """Extracting information as best you can. You have access to the following tool:
+REACT_PROMPT_VEHICLE_ISSUES_FINAL = """Answer the following questions as best you can. You have access to the following tools:
 
 {tool_descs}
 
 Use the following format:
 
-Question: the input question you must extract
+Question: the input question you must answer
 Thought: you should always think about what to do
-Extracted_Json: the extracting information with json formatted
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action with json formatted
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can be repeated zero or more times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
 
 Begin!
 
-Question: {query}"""
+Question: {query}
+Thought:我将调用vehicle_issues工具来获取问题答案
+Action: vehicle_issues
+Action Input:{Extracted_Json}
+Observation:{api_output}
+"""

@@ -193,7 +193,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                                               choices=[choice_data],
                                               object='chat.completion')
             # 不需要提取直接调用API
-            elif already_known_user['scene'] in ['name']:
+            elif already_known_user['scene'] in ['name', 'what_scenes']:
                 model.generation_config.temperature = 0.7
                 model.generation_config.top_k = 20
                 model.generation_config.top_p = 0.8
@@ -293,6 +293,11 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 already_known_user_global[request.user_id] = already_known_user
                 print('api返回结果：' + api_output)
                 # 对结果整理话术
+                try:
+                    json.loads(Extracted_Json)
+                except:
+                    Extracted_Json = '{}'
+                print(Extracted_Json)
                 Extracted_Json = {**Extracted_Json_already, **json.loads(Extracted_Json)}
                 prompt = build_planning_prompt_final(query, scene, Extracted_Json, api_output)
                 print(prompt)

@@ -6,13 +6,13 @@ TOOL_VEHICLE_ISSUES = [
             'vehicle_issues',
         'name_for_model':
             'vehicle_issues',
-        'description_for_model': "这个工具来提取用户问题中的车辆信息，如果问题中没有提到车辆信息，"
-                                 "has_vehicle_information为False，提到了车辆信息则为True，"
+        'description_for_model': "这个工具来提取问题中的品牌名称,车系名称,车辆年款，如果问题中没有提到品牌名称,车系名称,车辆年款，"
+                                 "has_vehicle_information为False，提到了品牌名称,车系名称,车辆年款中任何一个则为True，"
                                  "并在JSON中记录用户说的车辆信息.",
         'parameters': [{
             "name": "has_vehicle_information",
-            "type": "boolean",
-            "description": "True or False",
+            "type": "string",
+            "description": "Yes or No",
             'required': True
         },{
             "name": "vehicle_brand_name",

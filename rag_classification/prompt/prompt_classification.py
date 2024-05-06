@@ -34,6 +34,12 @@ TOOLS = [
         'name_for_model':
             'vehicle_issues',
         'description_for_model': "当用户问汽车功能，汽车故障等任何汽车相关的问题时，进入这个场景",
+    },{
+        'name_for_human':
+            'what_scenes',
+        'name_for_model':
+            'what_scenes',
+        'description_for_model': "这个工具用来返回你能做什么.",
     },
     {
         'name_for_human':

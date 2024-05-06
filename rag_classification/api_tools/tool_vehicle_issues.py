@@ -14,7 +14,7 @@ def tool_wrapper_for_qwen_vehicle_issues():
             # 模型抽取校验
             if '' != value:
                 query_tmp[key] = value
-        if not query_tmp or not query_tmp['has_vehicle_information']:
+        if not query_tmp or 'No' == query_tmp['has_vehicle_information']:
             query_tmp['question'] = original_question
             query_tmp['userId'] = user_id
         # 如果用户说了车型信息，需要补充全
