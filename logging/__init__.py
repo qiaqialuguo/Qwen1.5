@@ -168,7 +168,7 @@ else: #pragma: no cover
         try:
             raise Exception
         except Exception:
-            return sys.exc_info()[2].tb_frame.f_back
+            return sys.exc_info()[2].tb_frame.f_back.f_back
 
 #
 # _srcfile is used when walking the stack to check when we've got the first
