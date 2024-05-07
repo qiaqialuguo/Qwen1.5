@@ -80,10 +80,6 @@ async def create_chat_completion(request: ChatCompletionRequest):
             pass
         # 如果用rag
         else:
-            # model.generation_config.temperature = None
-            # model.generation_config.top_k = None
-            # model.generation_config.top_p = None
-            # model.generation_config.do_sample = False  # greedy 禁用采样，贪婪
             print("\033[1;42m用户【" + request.user_id + "】开始提问，生成答案中...  \033[0m\033[1;45m" + str(
                 datetime.datetime.now()) +
                   "  \033[0m\033[1;44m模式：非流式，使用rag\033[0m")
@@ -138,10 +134,6 @@ async def create_chat_completion(request: ChatCompletionRequest):
             conversation_scene = deepcopy(conversation)  # 提取关键字时清空历史
             #  如果直接调用模型
             if 'no_scene' == already_known_user['scene']:
-                # model.generation_config.temperature = 0.7
-                # model.generation_config.top_k = 20
-                # model.generation_config.top_p = 0.8
-                # model.generation_config.do_sample = True  # 问答有随机性
                 conversation_scene.append({'role': 'user', 'content': query})
                 #  请求模型
                 request_param = {'temperature': 0.7, 'top_k': 20, 'top_p': 0.8, 'do_sample': True,
@@ -183,10 +175,6 @@ async def create_chat_completion(request: ChatCompletionRequest):
                                               object='chat.completion')
             # 不需要提取直接调用API
             elif already_known_user['scene'] in ['name', 'what_scenes']:
-                # model.generation_config.temperature = 0.7
-                # model.generation_config.top_k = 20
-                # model.generation_config.top_p = 0.8
-                # model.generation_config.do_sample = True  # 问答有随机性
                 prompt = build_planning_prompt(query, already_known_user)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
                 api_output, already_known_user = use_api(response, already_known_user, request.user_id,
                                                          query)  # 抽取入参并执行api
@@ -232,10 +220,6 @@ async def create_chat_completion(request: ChatCompletionRequest):
             # 如果要抽取信息
             elif already_known_user['scene'] in ['buy_car', 'used_car_valuation',
                                                  'the_car_appointment', 'vehicle_issues']:
-                # model.generation_config.temperature = None
-                # model.generation_config.top_k = None
-                # model.generation_config.top_p = None
-                # model.generation_config.do_sample = False  # greedy 禁用采样，贪婪
                 prompt = build_planning_prompt(query, already_known_user)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
                 conversation_scene = [{'role': 'system', 'content': '你要对用户话中的信息进行抽取并格式化成JSON'}]
                 conversation_scene.append({'role': 'user', 'content': prompt})
