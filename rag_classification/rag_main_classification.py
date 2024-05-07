@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from copy import deepcopy
 
 import GPUtil
+import requests
 import torch
 import uvicorn
 from fastapi import FastAPI
@@ -48,13 +49,13 @@ async def create_chat_completion(request: ChatCompletionRequest):
         stop_words.append('Observation:')
     if 'Observation:\n' not in stop_words:
         stop_words.append('Observation:\n')
-    stop_words_ids = [tokenizer.encode(_) for _ in stop_words]
-
-    stop_words_logits_processor = StopWordsLogitsProcessor(
-        stop_words_ids=stop_words_ids,
-        eos_token_id=model.generation_config.eos_token_id,
-    )
-    logits_processor = LogitsProcessorList([stop_words_logits_processor])
+    # stop_words_ids = [tokenizer.encode(_) for _ in stop_words]
+    #
+    # stop_words_logits_processor = StopWordsLogitsProcessor(
+    #     stop_words_ids=stop_words_ids,
+    #     eos_token_id=model.generation_config.eos_token_id,
+    # )
+    # logits_processor = LogitsProcessorList([stop_words_logits_processor])
 
     global history_global
     # 处理消息
@@ -79,10 +80,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
             pass
         # 如果用rag
         else:
-            model.generation_config.temperature = None
-            model.generation_config.top_k = None
-            model.generation_config.top_p = None
-            model.generation_config.do_sample = False  # greedy 禁用采样，贪婪
+            # model.generation_config.temperature = None
+            # model.generation_config.top_k = None
+            # model.generation_config.top_p = None
+            # model.generation_config.do_sample = False  # greedy 禁用采样，贪婪
             print("\033[1;42m用户【" + request.user_id + "】开始提问，生成答案中...  \033[0m\033[1;45m" + str(
                 datetime.datetime.now()) +
                   "  \033[0m\033[1;44m模式：非流式，使用rag\033[0m")
@@ -95,20 +96,15 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 prompt = build_planning_prompt(query, already_known_user)  # 组织prompt
                 conversation.append({'role': 'user', 'content': prompt})
                 # 模型进行分类
-                inputs = tokenizer.apply_chat_template(
-                    conversation,
-                    tokenize=False,
-                    add_generation_prompt=True
-                )
-                model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
-                generated_ids = model.generate(
-                    model_inputs.input_ids,
-                    max_new_tokens=1024,
-                )
-                generated_ids = [
-                    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-                ]
-                response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                request_param = {'temperature': None, 'top_k': None, 'top_p': None, 'do_sample': False,
+                                 'messages': conversation}
+                response = requests.post(f'http://192.168.110.147:10029/v1/chat/completions', json=request_param)
+                if response.status_code == 200:
+                    data = response.json()  # 获取响应数据，如果是 JSON 格式
+                    response = data['choices'][0]['message']['content']
+                else:
+                    raise Exception("大模型返回错误")
+
                 i = response.rfind('\nScene:')
                 classify_time = time.time()
                 classify_mem = GPUtil.getGPUs()[0].memoryUsed
@@ -142,27 +138,20 @@ async def create_chat_completion(request: ChatCompletionRequest):
             conversation_scene = deepcopy(conversation)  # 提取关键字时清空历史
             #  如果直接调用模型
             if 'no_scene' == already_known_user['scene']:
-                model.generation_config.temperature = 0.7
-                model.generation_config.top_k = 20
-                model.generation_config.top_p = 0.8
-                model.generation_config.do_sample = True  # 问答有随机性
+                # model.generation_config.temperature = 0.7
+                # model.generation_config.top_k = 20
+                # model.generation_config.top_p = 0.8
+                # model.generation_config.do_sample = True  # 问答有随机性
                 conversation_scene.append({'role': 'user', 'content': query})
                 #  请求模型
-                inputs = tokenizer.apply_chat_template(
-                    conversation_scene,
-                    tokenize=False,
-                    add_generation_prompt=True
-                )
-                model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
-                generated_ids = model.generate(
-                    model_inputs.input_ids,
-                    max_new_tokens=1024,
-                    logits_processor=logits_processor
-                )
-                generated_ids = [
-                    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-                ]
-                response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                request_param = {'temperature': 0.7, 'top_k': 20, 'top_p': 0.8, 'do_sample': True,
+                                 'messages': conversation_scene}
+                response = requests.post(f'http://192.168.110.147:10029/v1/chat/completions', json=request_param)
+                if response.status_code == 200:
+                    data = response.json()  # 获取响应数据，如果是 JSON 格式
+                    response = data['choices'][0]['message']['content']
+                else:
+                    raise Exception("大模型返回错误")
 
                 end_time = time.time()
                 end_mem = GPUtil.getGPUs()[0].memoryUsed
@@ -194,10 +183,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
                                               object='chat.completion')
             # 不需要提取直接调用API
             elif already_known_user['scene'] in ['name', 'what_scenes']:
-                model.generation_config.temperature = 0.7
-                model.generation_config.top_k = 20
-                model.generation_config.top_p = 0.8
-                model.generation_config.do_sample = True  # 问答有随机性
+                # model.generation_config.temperature = 0.7
+                # model.generation_config.top_k = 20
+                # model.generation_config.top_p = 0.8
+                # model.generation_config.do_sample = True  # 问答有随机性
                 prompt = build_planning_prompt(query, already_known_user)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
                 api_output, already_known_user = use_api(response, already_known_user, request.user_id,
                                                          query)  # 抽取入参并执行api
@@ -206,21 +195,14 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 print(prompt)
                 conversation_scene.append({'role': 'user', 'content': prompt})
                 #  请求模型
-                inputs = tokenizer.apply_chat_template(
-                    conversation_scene,
-                    tokenize=False,
-                    add_generation_prompt=True
-                )
-                model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
-                generated_ids = model.generate(
-                    model_inputs.input_ids,
-                    max_new_tokens=1024,
-                    # logits_processor=logits_processor
-                )
-                generated_ids = [
-                    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-                ]
-                response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                request_param = {'temperature': 0.7, 'top_k': 20, 'top_p': 0.8, 'do_sample': True,
+                                 'messages': conversation_scene}
+                response = requests.post(f'http://192.168.110.147:10029/v1/chat/completions', json=request_param)
+                if response.status_code == 200:
+                    data = response.json()  # 获取响应数据，如果是 JSON 格式
+                    response = data['choices'][0]['message']['content']
+                else:
+                    raise Exception("大模型返回错误")
 
                 end_time = time.time()
                 end_mem = GPUtil.getGPUs()[0].memoryUsed
@@ -250,29 +232,24 @@ async def create_chat_completion(request: ChatCompletionRequest):
             # 如果要抽取信息
             elif already_known_user['scene'] in ['buy_car', 'used_car_valuation',
                                                  'the_car_appointment', 'vehicle_issues']:
-                model.generation_config.temperature = None
-                model.generation_config.top_k = None
-                model.generation_config.top_p = None
-                model.generation_config.do_sample = False  # greedy 禁用采样，贪婪
+                # model.generation_config.temperature = None
+                # model.generation_config.top_k = None
+                # model.generation_config.top_p = None
+                # model.generation_config.do_sample = False  # greedy 禁用采样，贪婪
                 prompt = build_planning_prompt(query, already_known_user)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
                 conversation_scene = [{'role': 'system', 'content': '你要对用户话中的信息进行抽取并格式化成JSON'}]
                 conversation_scene.append({'role': 'user', 'content': prompt})
                 print(prompt)
                 # 模型进行抽取
-                inputs = tokenizer.apply_chat_template(
-                    conversation_scene,
-                    tokenize=False,
-                    add_generation_prompt=True
-                )
-                model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
-                generated_ids = model.generate(
-                    model_inputs.input_ids,
-                    max_new_tokens=1024,
-                )
-                generated_ids = [
-                    output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-                ]
-                response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                request_param = {'temperature': None, 'top_k': None, 'top_p': None, 'do_sample': False,
+                                 'messages': conversation_scene}
+                response = requests.post(f'http://192.168.110.147:10029/v1/chat/completions', json=request_param)
+                if response.status_code == 200:
+                    data = response.json()  # 获取响应数据，如果是 JSON 格式
+                    response = data['choices'][0]['message']['content']
+                else:
+                    raise Exception("大模型返回错误")
+
                 j = response.rfind('\nExtracted_Json:')
                 classify_time = time.time()
                 classify_mem = GPUtil.getGPUs()[0].memoryUsed
@@ -303,25 +280,15 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 print(prompt)
                 conversation_scene = [{'role': 'system', 'content': system}]
                 conversation_scene.append({'role': 'user', 'content': prompt})
-                inputs = tokenizer.apply_chat_template(
-                    conversation_scene,
-                    tokenize=False,
-                    add_generation_prompt=True
-                )
-                model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
-                model.generation_config.temperature = 0.7
-                model.generation_config.top_k = 20
-                model.generation_config.top_p = 0.8
-                model.generation_config.do_sample = True  # 问答有随机性
-                generated_ids = model.generate(
-                    model_inputs.input_ids,
-                    max_new_tokens=1024,
-                )
-                generated_ids = [
-                    output_ids[len(input_ids):] for input_ids, output_ids in
-                    zip(model_inputs.input_ids, generated_ids)
-                ]
-                response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                request_param = {'temperature': 0.7, 'top_k': 20, 'top_p': 0.8, 'do_sample': True,
+                                 'messages': conversation_scene}
+                response = requests.post(f'http://192.168.110.147:10029/v1/chat/completions', json=request_param)
+                if response.status_code == 200:
+                    data = response.json()  # 获取响应数据，如果是 JSON 格式
+                    response = data['choices'][0]['message']['content']
+                else:
+                    raise Exception("大模型返回错误")
+
                 response = response.split('Final Answer:')[-1]
                 end_time = time.time()
                 end_mem = GPUtil.getGPUs()[0].memoryUsed
@@ -368,14 +335,14 @@ if __name__ == '__main__':
     history_global = dict()
     already_known_user_global = dict()
     # * 2.加载模型
-    tokenizer = AutoTokenizer.from_pretrained(args.checkpoint_path)
-
-    model = AutoModelForCausalLM.from_pretrained(
-        args.checkpoint_path,
-        device_map='cuda'
-        , bnb_4bit_compute_dtype=torch.float16
-        , load_in_4bit=True
-    ).eval()
+    # tokenizer = AutoTokenizer.from_pretrained(args.checkpoint_path)
+    #
+    # model = AutoModelForCausalLM.from_pretrained(
+    #     args.checkpoint_path,
+    #     device_map='cuda'
+    #     , bnb_4bit_compute_dtype=torch.float16
+    #     , load_in_4bit=True
+    # ).eval()
 
     # * 3.运行web框架
     uvicorn.run(app, host=args.server_name, port=args.server_port, workers=1)
