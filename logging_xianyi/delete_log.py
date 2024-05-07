@@ -10,7 +10,7 @@ import platform
 sysstr = platform.system()
 if (sysstr == "Windows"):
     sys.path.append(real_path + '\\utils')
-import logging
+import logging_modi
 from log_config_xianyi import LogConfigTwitter
 from util_twitter import UtilTwitter
 LogConfigTwitter("delete_log")
@@ -30,14 +30,14 @@ class DeleteLog:
             path_list = [join(root, name) for name in files]
             name_list = [name.split('_')[-1].split('.')[0] for name in files]
             name_list = list(set(name_list))
-            logging.info("文件夹{}-------日志保留{}天--------有日志{}天:{}".format(root.split('/')[-1], TTL, len(name_list), name_list))
+            logging_modi.info("文件夹{}-------日志保留{}天--------有日志{}天:{}".format(root.split('/')[-1], TTL, len(name_list), name_list))
             name_list.sort()
             if len(name_list) > TTL:
                 for path in path_list:
                     for i in range(len(name_list) - TTL):
                         if name_list[i] in path:
                             os.remove(path)
-                            logging.info("删除文件：{}".format(path))
+                            logging_modi.info("删除文件：{}".format(path))
 
     def get_file_size(self):
         log_file_dir = os.path.abspath(os.path.dirname(__file__)) + '/log_file/'

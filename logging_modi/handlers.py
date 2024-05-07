@@ -15,15 +15,15 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-Additional handlers for the logging package for Python. The core package is
+Additional handlers for the logging_modi package for Python. The core package is
 based on PEP 282 and comments thereto in comp.lang.python.
 
 Copyright (C) 2001-2021 Vinay Sajip. All Rights Reserved.
 
-To use, simply 'import logging.handlers' and log away!
+To use, simply 'import logging_modi.handlers' and log away!
 """
 
-import io, logging, socket, os, pickle, struct, time, re
+import io, logging_modi, socket, os, pickle, struct, time, re
 from stat import ST_DEV, ST_INO, ST_MTIME
 import queue
 import threading
@@ -42,7 +42,7 @@ SYSLOG_TCP_PORT             = 514
 
 _MIDNIGHT = 24 * 60 * 60  # number of seconds in a day
 
-class BaseRotatingHandler(logging.FileHandler):
+class BaseRotatingHandler(logging_modi.FileHandler):
     """
     Base class for handlers that rotate log files at a certain point.
     Not meant to be instantiated directly.  Instead, use RotatingFileHandler
@@ -53,11 +53,11 @@ class BaseRotatingHandler(logging.FileHandler):
 
     def __init__(self, filename, mode, encoding=None, delay=False, errors=None):
         """
-        Use the specified filename for streamed logging
+        Use the specified filename for streamed logging_modi
         """
-        logging.FileHandler.__init__(self, filename, mode=mode,
-                                     encoding=encoding, delay=delay,
-                                     errors=errors)
+        logging_modi.FileHandler.__init__(self, filename, mode=mode,
+                                          encoding=encoding, delay=delay,
+                                          errors=errors)
         self.mode = mode
         self.encoding = encoding
         self.errors = errors
@@ -72,7 +72,7 @@ class BaseRotatingHandler(logging.FileHandler):
         try:
             if self.shouldRollover(record):
                 self.doRollover()
-            logging.FileHandler.emit(self, record)
+            logging_modi.FileHandler.emit(self, record)
         except Exception:
             self.handleError(record)
 
@@ -118,13 +118,13 @@ class BaseRotatingHandler(logging.FileHandler):
 
 class RotatingFileHandler(BaseRotatingHandler):
     """
-    Handler for logging to a set of files, which switches from one file
+    Handler for logging_modi to a set of files, which switches from one file
     to the next when the current file reaches a certain size.
     """
     def __init__(self, filename, mode='a', maxBytes=0, backupCount=0,
                  encoding=None, delay=False, errors=None):
         """
-        Open the specified file and use it as the stream for logging.
+        Open the specified file and use it as the stream for logging_modi.
 
         By default, the file grows indefinitely. You can specify particular
         values of maxBytes and backupCount to allow the file to rollover at
@@ -201,7 +201,7 @@ class RotatingFileHandler(BaseRotatingHandler):
 
 class TimedRotatingFileHandler(BaseRotatingHandler):
     """
-    Handler for logging to a file, rotating the log file at certain timed
+    Handler for logging_modi to a file, rotating the log file at certain timed
     intervals.
 
     If backupCount is > 0, when rollover is done, no more than backupCount
@@ -452,9 +452,9 @@ class TimedRotatingFileHandler(BaseRotatingHandler):
                 newRolloverAt += addend
         self.rolloverAt = newRolloverAt
 
-class WatchedFileHandler(logging.FileHandler):
+class WatchedFileHandler(logging_modi.FileHandler):
     """
-    A handler for logging to a file, which watches the file
+    A handler for logging_modi to a file, which watches the file
     to see if it has changed while in use. This can happen because of
     usage of programs such as newsyslog and logrotate which perform
     log file rotation. This handler, intended for use under Unix,
@@ -464,7 +464,7 @@ class WatchedFileHandler(logging.FileHandler):
     opened to get a new stream.
 
     This handler is not appropriate for use under Windows, because
-    under Windows open files cannot be moved or renamed - logging
+    under Windows open files cannot be moved or renamed - logging_modi
     opens the files with exclusive locks - and so there is no need
     for such a handler. Furthermore, ST_INO is not supported under
     Windows; stat always returns zero for this value.
@@ -476,9 +476,9 @@ class WatchedFileHandler(logging.FileHandler):
                  errors=None):
         if "b" not in mode:
             encoding = io.text_encoding(encoding)
-        logging.FileHandler.__init__(self, filename, mode=mode,
-                                     encoding=encoding, delay=delay,
-                                     errors=errors)
+        logging_modi.FileHandler.__init__(self, filename, mode=mode,
+                                          encoding=encoding, delay=delay,
+                                          errors=errors)
         self.dev, self.ino = -1, -1
         self._statstream()
 
@@ -523,17 +523,17 @@ class WatchedFileHandler(logging.FileHandler):
         record to it.
         """
         self.reopenIfNeeded()
-        logging.FileHandler.emit(self, record)
+        logging_modi.FileHandler.emit(self, record)
 
 
-class SocketHandler(logging.Handler):
+class SocketHandler(logging_modi.Handler):
     """
-    A handler class which writes logging records, in pickle format, to
-    a streaming socket. The socket is kept open across logging calls.
+    A handler class which writes logging_modi records, in pickle format, to
+    a streaming socket. The socket is kept open across logging_modi calls.
     If the peer resets it, an attempt is made to reconnect on the next call.
     The pickle which is sent is that of the LogRecord's attribute dictionary
-    (__dict__), so that the receiver does not need to have the logging module
-    installed in order to process the logging event.
+    (__dict__), so that the receiver does not need to have the logging_modi module
+    installed in order to process the logging_modi event.
 
     To unpickle the record at the receiving end into a LogRecord, use the
     makeLogRecord function.
@@ -545,9 +545,9 @@ class SocketHandler(logging.Handler):
 
         When the attribute *closeOnError* is set to True - if a socket error
         occurs, the socket is silently closed and then reopened on the next
-        logging call.
+        logging_modi call.
         """
-        logging.Handler.__init__(self)
+        logging_modi.Handler.__init__(self)
         self.host = host
         self.port = port
         if port is None:
@@ -652,9 +652,9 @@ class SocketHandler(logging.Handler):
 
     def handleError(self, record):
         """
-        Handle an error during logging.
+        Handle an error during logging_modi.
 
-        An error has occurred during logging. Most likely cause -
+        An error has occurred during logging_modi. Most likely cause -
         connection lost. Close the socket so that we can retry on the
         next event.
         """
@@ -662,7 +662,7 @@ class SocketHandler(logging.Handler):
             self.sock.close()
             self.sock = None        #try to reconnect next time
         else:
-            logging.Handler.handleError(self, record)
+            logging_modi.Handler.handleError(self, record)
 
     def emit(self, record):
         """
@@ -689,16 +689,16 @@ class SocketHandler(logging.Handler):
             if sock:
                 self.sock = None
                 sock.close()
-            logging.Handler.close(self)
+            logging_modi.Handler.close(self)
         finally:
             self.release()
 
 class DatagramHandler(SocketHandler):
     """
-    A handler class which writes logging records, in pickle format, to
+    A handler class which writes logging_modi records, in pickle format, to
     a datagram socket.  The pickle which is sent is that of the LogRecord's
     attribute dictionary (__dict__), so that the receiver does not need to
-    have the logging module installed in order to process the logging event.
+    have the logging_modi module installed in order to process the logging_modi event.
 
     To unpickle the record at the receiving end into a LogRecord, use the
     makeLogRecord function.
@@ -735,9 +735,9 @@ class DatagramHandler(SocketHandler):
             self.createSocket()
         self.sock.sendto(s, self.address)
 
-class SysLogHandler(logging.Handler):
+class SysLogHandler(logging_modi.Handler):
     """
-    A handler class which sends formatted logging records to a syslog
+    A handler class which sends formatted logging_modi records to a syslog
     server. Based on Sam Rushing's syslog module:
     http://www.nightmare.com/squirl/python-ext/misc/syslog.py
     Contributed by Nicolas Untz (after which minor refactoring changes
@@ -856,7 +856,7 @@ class SysLogHandler(logging.Handler):
         socktype of None, in which case socket.SOCK_DGRAM will be used, falling
         back to socket.SOCK_STREAM.
         """
-        logging.Handler.__init__(self)
+        logging_modi.Handler.__init__(self)
 
         self.address = address
         self.facility = facility
@@ -903,7 +903,7 @@ class SysLogHandler(logging.Handler):
             self.unixsocket = True
             # Syslog server may be unavailable during handler initialisation.
             # C's openlog() function also ignores connection errors.
-            # Moreover, we ignore these errors while logging, so it's not worse
+            # Moreover, we ignore these errors while logging_modi, so it's not worse
             # to ignore it also here.
             try:
                 self._connect_unixsocket(address)
@@ -957,16 +957,16 @@ class SysLogHandler(logging.Handler):
             if sock:
                 self.socket = None
                 sock.close()
-            logging.Handler.close(self)
+            logging_modi.Handler.close(self)
         finally:
             self.release()
 
     def mapPriority(self, levelName):
         """
-        Map a logging level name to a key in the priority_names map.
+        Map a logging_modi level name to a key in the priority_names map.
         This is useful in two scenarios: when custom levels are being
         used, and in the case where you can't do a straightforward
-        mapping by lowercasing the logging level name because of locale-
+        mapping by lowercasing the logging_modi level name because of locale-
         specific issues (see SF #1524081).
         """
         return self.priority_map.get(levelName, "warning")
@@ -1014,9 +1014,9 @@ class SysLogHandler(logging.Handler):
         except Exception:
             self.handleError(record)
 
-class SMTPHandler(logging.Handler):
+class SMTPHandler(logging_modi.Handler):
     """
-    A handler class which sends an SMTP email for each logging event.
+    A handler class which sends an SMTP email for each logging_modi event.
     """
     def __init__(self, mailhost, fromaddr, toaddrs, subject,
                  credentials=None, secure=None, timeout=5.0):
@@ -1036,7 +1036,7 @@ class SMTPHandler(logging.Handler):
         A timeout in seconds can be specified for the SMTP connection (the
         default is one second).
         """
-        logging.Handler.__init__(self)
+        logging_modi.Handler.__init__(self)
         if isinstance(mailhost, (list, tuple)):
             self.mailhost, self.mailport = mailhost
         else:
@@ -1094,7 +1094,7 @@ class SMTPHandler(logging.Handler):
         except Exception:
             self.handleError(record)
 
-class NTEventLogHandler(logging.Handler):
+class NTEventLogHandler(logging_modi.Handler):
     """
     A handler class which sends events to the NT Event Log. Adds a
     registry entry for the specified application name. If no dllname is
@@ -1105,7 +1105,7 @@ class NTEventLogHandler(logging.Handler):
     which contains the message definitions you want to use in the event log.
     """
     def __init__(self, appname, dllname=None, logtype="Application"):
-        logging.Handler.__init__(self)
+        logging_modi.Handler.__init__(self)
         try:
             import win32evtlogutil, win32evtlog
             self.appname = appname
@@ -1128,15 +1128,15 @@ class NTEventLogHandler(logging.Handler):
                     raise
             self.deftype = win32evtlog.EVENTLOG_ERROR_TYPE
             self.typemap = {
-                logging.DEBUG   : win32evtlog.EVENTLOG_INFORMATION_TYPE,
-                logging.INFO    : win32evtlog.EVENTLOG_INFORMATION_TYPE,
-                logging.WARNING : win32evtlog.EVENTLOG_WARNING_TYPE,
-                logging.ERROR   : win32evtlog.EVENTLOG_ERROR_TYPE,
-                logging.CRITICAL: win32evtlog.EVENTLOG_ERROR_TYPE,
+                logging_modi.DEBUG   : win32evtlog.EVENTLOG_INFORMATION_TYPE,
+                logging_modi.INFO    : win32evtlog.EVENTLOG_INFORMATION_TYPE,
+                logging_modi.WARNING : win32evtlog.EVENTLOG_WARNING_TYPE,
+                logging_modi.ERROR   : win32evtlog.EVENTLOG_ERROR_TYPE,
+                logging_modi.CRITICAL: win32evtlog.EVENTLOG_ERROR_TYPE,
          }
         except ImportError:
             print("The Python Win32 extensions for NT (service, event "\
-                        "logging) appear not to be available.")
+                        "logging_modi) appear not to be available.")
             self._welu = None
 
     def getMessageID(self, record):
@@ -1199,9 +1199,9 @@ class NTEventLogHandler(logging.Handler):
         DLL name.
         """
         #self._welu.RemoveSourceFromRegistry(self.appname, self.logtype)
-        logging.Handler.close(self)
+        logging_modi.Handler.close(self)
 
-class HTTPHandler(logging.Handler):
+class HTTPHandler(logging_modi.Handler):
     """
     A class which sends records to a web server, using either GET or
     POST semantics.
@@ -1212,7 +1212,7 @@ class HTTPHandler(logging.Handler):
         Initialize the instance with the host, the request URL, and the method
         ("GET" or "POST")
         """
-        logging.Handler.__init__(self)
+        logging_modi.Handler.__init__(self)
         method = method.upper()
         if method not in ["GET", "POST"]:
             raise ValueError("method must be GET or POST")
@@ -1291,9 +1291,9 @@ class HTTPHandler(logging.Handler):
         except Exception:
             self.handleError(record)
 
-class BufferingHandler(logging.Handler):
+class BufferingHandler(logging_modi.Handler):
     """
-  A handler class which buffers logging records in memory. Whenever each
+  A handler class which buffers logging_modi records in memory. Whenever each
   record is added to the buffer, a check is made to see if the buffer should
   be flushed. If it should, then flush() is expected to do what's needed.
     """
@@ -1301,7 +1301,7 @@ class BufferingHandler(logging.Handler):
         """
         Initialize the handler with the buffer size.
         """
-        logging.Handler.__init__(self)
+        logging_modi.Handler.__init__(self)
         self.capacity = capacity
         self.buffer = []
 
@@ -1346,15 +1346,15 @@ class BufferingHandler(logging.Handler):
         try:
             self.flush()
         finally:
-            logging.Handler.close(self)
+            logging_modi.Handler.close(self)
 
 class MemoryHandler(BufferingHandler):
     """
-    A handler class which buffers logging records in memory, periodically
+    A handler class which buffers logging_modi records in memory, periodically
     flushing them to a target handler. Flushing occurs whenever the buffer
     is full, or when an event of a certain severity or greater is seen.
     """
-    def __init__(self, capacity, flushLevel=logging.ERROR, target=None,
+    def __init__(self, capacity, flushLevel=logging_modi.ERROR, target=None,
                  flushOnClose=True):
         """
         Initialize the handler with the buffer size, the level at which
@@ -1425,10 +1425,10 @@ class MemoryHandler(BufferingHandler):
                 self.release()
 
 
-class QueueHandler(logging.Handler):
+class QueueHandler(logging_modi.Handler):
     """
     This handler sends events to a queue. Typically, it would be used together
-    with a multiprocessing Queue to centralise logging to file in one process
+    with a multiprocessing Queue to centralise logging_modi to file in one process
     (in a multi-process application), so as to avoid file write contention
     between processes.
 
@@ -1440,7 +1440,7 @@ class QueueHandler(logging.Handler):
         """
         Initialise an instance, using the passed queue.
         """
-        logging.Handler.__init__(self)
+        logging_modi.Handler.__init__(self)
         self.queue = queue
 
     def enqueue(self, record):

@@ -6,7 +6,7 @@ logging配置
 """
 import os
 import time
-import logging.config
+import logging_modi.config
 
 
 class LogConfigXianYi:
@@ -67,13 +67,13 @@ class LogConfigXianYi:
                 # 打印到终端的日志
                 'stream': {
                     'level': 'DEBUG',
-                    'class': 'logging.StreamHandler',  # 打印到屏幕
+                    'class': 'logging_modi.StreamHandler',  # 打印到屏幕
                     'formatter': 'simple'
                 },
                 # 打印到文件的日志,收集info及以上的日志
                 'access': {
                     'level': 'DEBUG',
-                    'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件
+                    'class': 'logging_modi.handlers.RotatingFileHandler',  # 保存到文件
                     'formatter': 'standard',
                     'filename': logfile_path,  # 日志文件路径
                     'maxBytes': 1024 * 1024 * 50,  # 日志大小 5M
@@ -83,7 +83,7 @@ class LogConfigXianYi:
                 # 打印到文件的日志,收集error及以上的日志
                 'boss': {
                     'level': 'ERROR',
-                    'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件
+                    'class': 'logging_modi.handlers.RotatingFileHandler',  # 保存到文件
                     'formatter': 'id_simple',
                     'filename': error_log_path,  # 日志文件
                     'maxBytes': 1024 * 1024 * 50,  # 日志大小 5M
@@ -104,8 +104,8 @@ class LogConfigXianYi:
                 # 但是拿着该名字去loggers里找key名时却发现找不到，于是默认使用key=''的配置
             },
         }
-        logging.config.dictConfig(LOGGING_DIC) # 导入上面定义的logging配置
-        logging.getLogger(__name__)  # 生成一个log实例
+        logging_modi.config.dictConfig(LOGGING_DIC) # 导入上面定义的logging配置
+        logging_modi.getLogger(__name__)  # 生成一个log实例
 if __name__ == '__main__':
     LogConfigXianYi("ww").log_config('hi')
 

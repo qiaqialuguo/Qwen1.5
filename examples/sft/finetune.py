@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass, field
 import json
-import logging
+import logging_modi
 import os
 import pathlib
 from typing import Dict, Optional, List
@@ -283,7 +283,7 @@ def train():
     if lora_args.q_lora:
         device_map = {"": int(os.environ.get("LOCAL_RANK") or 0)} if ddp else "auto"
         if len(training_args.fsdp) > 0 or deepspeed.is_deepspeed_zero3_enabled():
-            logging.warning("FSDP or ZeRO3 is incompatible with QLoRA.")
+            logging_modi.warning("FSDP or ZeRO3 is incompatible with QLoRA.")
 
     model_load_kwargs = {
         "low_cpu_mem_usage": not deepspeed.is_deepspeed_zero3_enabled(),

@@ -4,7 +4,7 @@
 import os
 real_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 import sys
-import logging
+import logging_modi
 sys.path.append(real_path + '/connections')
 sys.path.append(real_path + '/logging_xianyi')
 sys.path.append(real_path + '/utils')
@@ -23,4 +23,4 @@ class demo:
 
 if __name__ == '__main__':
     demo('er')
-    logging.error(333)
+    logging_modi.error(333)

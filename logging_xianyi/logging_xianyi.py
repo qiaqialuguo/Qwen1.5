@@ -6,7 +6,7 @@ import os
 
 real_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 import sys
-import logging
+import logging_modi
 
 sys.path.append(real_path  + '/constant')
 import platform
@@ -25,7 +25,7 @@ class logging_xianyi:
 
     @staticmethod
     def info(message):
-        logging.info(message)
+        logging_modi.info(message)
         print(111111111)
         caller = inspect.currentframe().f_back
         caller_name = caller.f_code.co_name
@@ -38,12 +38,12 @@ class logging_xianyi:
 
     @staticmethod
     def warning(message):
-        logging.warning(message)
+        logging_modi.warning(message)
 
     @staticmethod
     def error(message):
-        logging.error(message)
+        logging_modi.error(message)
 
     @staticmethod
     def debug(message):
-        logging.debug(message)
+        logging_modi.debug(message)

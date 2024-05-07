@@ -13,11 +13,11 @@
 import os
 import sys
 from sphinx.ext import autodoc
-import logging
+import logging_modi
 
 sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 
-logger = logging.getLogger(__name__)
+logger = logging_modi.getLogger(__name__)
 
 # -- Project information -----------------------------------------------------
 

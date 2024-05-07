@@ -20,7 +20,7 @@ comp.lang.python.
 
 Copyright (C) 2001-2019 Vinay Sajip. All Rights Reserved.
 
-To use, simply 'import logging' and log away!
+To use, simply 'import logging_modi' and log away!
 """
 
 import sys, os, time, io, re, traceback, warnings, weakref, collections.abc
@@ -122,7 +122,7 @@ def getLevelNamesMapping():
 
 def getLevelName(level):
     """
-    Return the textual or numeric representation of logging level 'level'.
+    Return the textual or numeric representation of logging_modi level 'level'.
 
     If the level is one of the predefined levels (CRITICAL, ERROR, WARNING,
     INFO, DEBUG) then you get the corresponding string. If you have
@@ -189,10 +189,10 @@ _srcfile = os.path.normcase(addLevelName.__code__.co_filename)
 # way, you can avoid the overhead of fetching caller information.
 
 # The following is based on warnings._is_internal_frame. It makes sure that
-# frames of the import mechanism are skipped when logging at module level and
+# frames of the import mechanism are skipped when logging_modi at module level and
 # using a stacklevel value greater than one.
 def _is_internal_frame(frame):
-    """Signal whether the frame is a CPython or logging module internal."""
+    """Signal whether the frame is a CPython or logging_modi module internal."""
     filename = os.path.normcase(frame.f_code.co_filename)
     return filename == _srcfile or (
         "importlib" in filename and "_bootstrap" in filename
@@ -242,13 +242,13 @@ def _releaseLock():
         _lock.release()
 
 
-# Prevent a held logging lock from blocking a child from logging.
+# Prevent a held logging_modi lock from blocking a child from logging_modi.
 
 if not hasattr(os, 'register_at_fork'):  # Windows and friends.
     def _register_at_fork_reinit_lock(instance):
         pass  # no-op when os.register_at_fork does not exist.
 else:
-    # A collection of instances with a _at_fork_reinit method (logging.Handler)
+    # A collection of instances with a _at_fork_reinit method (logging_modi.Handler)
     # to be called in the child after forking.  The weakref avoids us keeping
     # discarded Handler instances alive.
     _at_fork_reinit_lock_weakset = weakref.WeakSet()
@@ -274,7 +274,7 @@ else:
 
 
 #---------------------------------------------------------------------------
-#   The logging record
+#   The logging_modi record
 #---------------------------------------------------------------------------
 
 class LogRecord(object):
@@ -286,13 +286,13 @@ class LogRecord(object):
     main information passed in is in msg and args, which are combined
     using str(msg) % args to create the message field of the record. The
     record also includes information such as when the record was created,
-    the source line where the logging call was made, and any exception
+    the source line where the logging_modi call was made, and any exception
     information to be logged.
     """
     def __init__(self, name, level, pathname, lineno,
                  msg, args, exc_info, func=None, sinfo=None, **kwargs):
         """
-        Initialize a logging record with interesting information.
+        Initialize a logging_modi record with interesting information.
         """
         ct = time.time()
         self.name = name
@@ -300,7 +300,7 @@ class LogRecord(object):
         #
         # The following statement allows passing of a dictionary as a sole
         # argument, so that you can do something like
-        #  logging.debug("a %(a)d b %(b)s", {'a':1, 'b':2})
+        #  logging_modi.debug("a %(a)d b %(b)s", {'a':1, 'b':2})
         # Suggested by Stefan Behnel.
         # Note that without the test for args[0], we get a problem because
         # during formatting, we test to see if the arg is present using
@@ -402,7 +402,7 @@ def getLogRecordFactory():
 def makeLogRecord(dict):
     """
     Make a LogRecord whose attributes are defined by the specified dictionary,
-    This function is useful for converting a logging event received over
+    This function is useful for converting a logging_modi event received over
     a socket connection (which is sent as a dictionary) into a LogRecord
     instance.
     """
@@ -545,16 +545,16 @@ class Formatter(object):
     formatted into a LogRecord's message attribute. Currently, the useful
     attributes in a LogRecord are described by:
 
-    %(name)s            Name of the logger (logging channel)
-    %(levelno)s         Numeric logging level for the message (DEBUG, INFO,
+    %(name)s            Name of the logger (logging_modi channel)
+    %(levelno)s         Numeric logging_modi level for the message (DEBUG, INFO,
                         WARNING, ERROR, CRITICAL)
-    %(levelname)s       Text logging level for the message ("DEBUG", "INFO",
+    %(levelname)s       Text logging_modi level for the message ("DEBUG", "INFO",
                         "WARNING", "ERROR", "CRITICAL")
-    %(pathname)s        Full pathname of the source file where the logging
+    %(pathname)s        Full pathname of the source file where the logging_modi
                         call was issued (if available)
     %(filename)s        Filename portion of pathname
     %(module)s          Module (name portion of filename)
-    %(lineno)d          Source line number where the logging call was issued
+    %(lineno)d          Source line number where the logging_modi call was issued
                         (if available)
     %(funcName)s        Function name
     %(created)f         Time when the LogRecord was created (time.time()
@@ -562,7 +562,7 @@ class Formatter(object):
     %(asctime)s         Textual time when the LogRecord was created
     %(msecs)d           Millisecond portion of the creation time
     %(relativeCreated)d Time in milliseconds when the LogRecord was created,
-                        relative to the time the logging module was loaded
+                        relative to the time the logging_modi module was loaded
                         (typically at application startup time)
     %(thread)d          Thread ID (if available)
     %(threadName)s      Thread name (if available)
@@ -618,7 +618,7 @@ class Formatter(object):
         time.localtime() is used; to change this for a particular formatter
         instance, set the 'converter' attribute to a function with the same
         signature as time.localtime() or time.gmtime(). To change it for all
-        formatters, for example if you want all logging times to be shown in GMT,
+        formatters, for example if you want all logging_modi times to be shown in GMT,
         set the 'converter' attribute in the Formatter class.
         """
         ct = self.converter(record.created)
@@ -872,7 +872,7 @@ def _addHandlerRef(handler):
 
 class Handler(Filterer):
     """
-    Handler instances dispatch logging events to specific destinations.
+    Handler instances dispatch logging_modi events to specific destinations.
 
     The base handler class. Acts as a placeholder which defines the Handler
     interface. Handlers can optionally use Formatter instances to format
@@ -935,7 +935,7 @@ class Handler(Filterer):
 
     def setLevel(self, level):
         """
-        Set the logging level of this handler.  level must be an int or a str.
+        Set the logging_modi level of this handler.  level must be an int or a str.
         """
         self.level = _checkLevel(level)
 
@@ -954,7 +954,7 @@ class Handler(Filterer):
 
     def emit(self, record):
         """
-        Do whatever it takes to actually log the specified logging record.
+        Do whatever it takes to actually log the specified logging_modi record.
 
         This version is intended to be implemented by subclasses and so
         raises a NotImplementedError.
@@ -964,7 +964,7 @@ class Handler(Filterer):
 
     def handle(self, record):
         """
-        Conditionally emit the specified logging record.
+        Conditionally emit the specified logging_modi record.
 
         Emission depends on filters which may have been added to the handler.
         Wrap the actual emission of the record with acquisition/release of
@@ -988,7 +988,7 @@ class Handler(Filterer):
 
     def flush(self):
         """
-        Ensure all logging output has been flushed.
+        Ensure all logging_modi output has been flushed.
 
         This version does nothing and is intended to be implemented by
         subclasses.
@@ -1020,8 +1020,8 @@ class Handler(Filterer):
         This method should be called from handlers when an exception is
         encountered during an emit() call. If raiseExceptions is false,
         exceptions get silently ignored. This is what is mostly wanted
-        for a logging system - most users will not care about errors in
-        the logging system, they are more interested in application errors.
+        for a logging_modi system - most users will not care about errors in
+        the logging_modi system, they are more interested in application errors.
         You could, however, replace this with a custom handler if you wish.
         The record which was being processed is passed in to this method.
         """
@@ -1031,7 +1031,7 @@ class Handler(Filterer):
                 sys.stderr.write('--- Logging error ---\n')
                 traceback.print_exception(t, v, tb, None, sys.stderr)
                 sys.stderr.write('Call stack:\n')
-                # Walk the stack frame up until we're out of logging,
+                # Walk the stack frame up until we're out of logging_modi,
                 # so as to print the calling context.
                 frame = tb.tb_frame
                 while (frame and os.path.dirname(frame.f_code.co_filename) ==
@@ -1043,7 +1043,7 @@ class Handler(Filterer):
                     # couldn't find the right stack frame, for some reason
                     sys.stderr.write('Logged from file %s, line %s\n' % (
                                      record.filename, record.lineno))
-                # Issue 18671: output logging message and arguments
+                # Issue 18671: output logging_modi message and arguments
                 try:
                     sys.stderr.write('Message: %r\n'
                                      'Arguments: %s\n' % (record.msg,
@@ -1066,7 +1066,7 @@ class Handler(Filterer):
 
 class StreamHandler(Handler):
     """
-    A handler class which writes logging records, appropriately formatted,
+    A handler class which writes logging_modi records, appropriately formatted,
     to a stream. Note that this class does not close the stream, as
     sys.stdout or sys.stderr may be used.
     """
@@ -1151,11 +1151,11 @@ class StreamHandler(Handler):
 
 class FileHandler(StreamHandler):
     """
-    A handler class which writes formatted logging records to disk files.
+    A handler class which writes formatted logging_modi records to disk files.
     """
     def __init__(self, filename, mode='a', encoding=None, delay=False, errors=None):
         """
-        Open the specified file and use it as the stream for logging.
+        Open the specified file and use it as the stream for logging_modi.
         """
         # Issue #27493: add support for Path objects to be passed in
         filename = os.fspath(filename)
@@ -1289,7 +1289,7 @@ def setLoggerClass(klass):
     """
     if klass != Logger:
         if not issubclass(klass, Logger):
-            raise TypeError("logger not derived from logging.Logger: "
+            raise TypeError("logger not derived from logging_modi.Logger: "
                             + klass.__name__)
     global _loggerClass
     _loggerClass = klass
@@ -1364,7 +1364,7 @@ class Manager(object):
         """
         if klass != Logger:
             if not issubclass(klass, Logger):
-                raise TypeError("logger not derived from logging.Logger: "
+                raise TypeError("logger not derived from logging_modi.Logger: "
                                 + klass.__name__)
         self.loggerClass = klass
 
@@ -1431,10 +1431,10 @@ class Manager(object):
 
 class Logger(Filterer):
     """
-    Instances of the Logger class represent a single logging channel. A
-    "logging channel" indicates an area of an application. Exactly how an
+    Instances of the Logger class represent a single logging_modi channel. A
+    "logging_modi channel" indicates an area of an application. Exactly how an
     "area" is defined is up to the application developer. Since an
-    application can have any number of areas, logging channels are identified
+    application can have any number of areas, logging_modi channels are identified
     by a unique string. Application areas can be nested (e.g. an area
     of "input processing" might include sub-areas "read CSV files", "read
     XLS files" and "read Gnumeric files"). To cater for this natural nesting,
@@ -1459,7 +1459,7 @@ class Logger(Filterer):
 
     def setLevel(self, level):
         """
-        Set the logging level of this logger.  level must be an int or a str.
+        Set the logging_modi level of this logger.  level must be an int or a str.
         """
         self.level = _checkLevel(level)
         self.manager._clear_cache()
@@ -1519,7 +1519,7 @@ class Logger(Filterer):
 
     def exception(self, msg, *args, exc_info=True, **kwargs):
         """
-        Convenience method for logging an ERROR with exception information.
+        Convenience method for logging_modi an ERROR with exception information.
         """
         self.error(msg, *args, exc_info=exc_info, **kwargs)
 
@@ -1610,14 +1610,14 @@ class Logger(Filterer):
     def _log(self, level, msg, args, exc_info=None, extra=None, stack_info=False,
              stacklevel=1):
         """
-        Low-level logging routine which creates a LogRecord and then calls
+        Low-level logging_modi routine which creates a LogRecord and then calls
         all the handlers of this logger to handle the record.
         """
         sinfo = None
         if _srcfile:
             #IronPython doesn't track Python frames, so findCaller raises an
             #exception on some versions of IronPython. We trap it here so that
-            #IronPython can use logging.
+            #IronPython can use logging_modi.
             try:
                 fn, lno, func, sinfo = self.findCaller(stack_info, stacklevel)
             except ValueError: # pragma: no cover
@@ -1722,7 +1722,7 @@ class Logger(Filterer):
         Get the effective level for this logger.
 
         Loop through this logger and its parents in the logger hierarchy,
-        looking for a non-zero logging level. Return the first one found.
+        looking for a non-zero logging_modi level. Return the first one found.
         """
         logger = self
         while logger:
@@ -1759,11 +1759,11 @@ class Logger(Filterer):
 
         This is a convenience method, such that
 
-        logging.getLogger('abc').getChild('def.ghi')
+        logging_modi.getLogger('abc').getChild('def.ghi')
 
         is the same as
 
-        logging.getLogger('abc.def.ghi')
+        logging_modi.getLogger('abc.def.ghi')
 
         It's useful, for example, when the parent logger is named using
         __name__ rather than a literal string.
@@ -1786,7 +1786,7 @@ class Logger(Filterer):
 class RootLogger(Logger):
     """
     A root logger is not that different to any other logger, except that
-    it must have a logging level and there is only one instance of it in
+    it must have a logging_modi level and there is only one instance of it in
     the hierarchy.
     """
     def __init__(self, level):
@@ -1803,7 +1803,7 @@ _loggerClass = Logger
 class LoggerAdapter(object):
     """
     An adapter for loggers which makes it easier to specify contextual
-    information in logging output.
+    information in logging_modi output.
     """
 
     def __init__(self, logger, extra=None):
@@ -1822,8 +1822,8 @@ class LoggerAdapter(object):
 
     def process(self, msg, kwargs):
         """
-        Process the logging message and keyword arguments passed in to
-        a logging call to insert contextual information. You can either
+        Process the logging_modi message and keyword arguments passed in to
+        a logging_modi call to insert contextual information. You can either
         manipulate the message itself, the keyword args or both. Return
         the message and kwargs modified (or not) to suit your needs.
 
@@ -1952,12 +1952,12 @@ Logger.manager = Manager(Logger.root)
 
 def basicConfig(**kwargs):
     """
-    Do basic configuration for the logging system.
+    Do basic configuration for the logging_modi system.
 
     This function does nothing if the root logger already has handlers
     configured, unless the keyword argument *force* is set to ``True``.
     It is a convenience method intended for use by simple scripts
-    to do one-shot configuration of the logging package.
+    to do one-shot configuration of the logging_modi package.
 
     The default behaviour is to create a StreamHandler which writes to
     sys.stderr, set a formatter using the BASIC_FORMAT format string, and
@@ -2169,14 +2169,14 @@ def log(level, msg, *args, **kwargs):
 
 def disable(level=CRITICAL):
     """
-    Disable all logging calls of severity 'level' and below.
+    Disable all logging_modi calls of severity 'level' and below.
     """
     root.manager.disable = level
     root.manager._clear_cache()
 
 def shutdown(handlerList=_handlerList):
     """
-    Perform any cleanup actions in the logging system (e.g. flushing
+    Perform any cleanup actions in the logging_modi system (e.g. flushing
     buffers).
 
     Should be called at application exit.
@@ -2215,7 +2215,7 @@ class NullHandler(Handler):
     This handler does nothing. It's intended to be used to avoid the
     "No handlers could be found for logger XXX" one-off warning. This is
     important for library code, which may contain code to log events. If a user
-    of the library does not configure logging, the one-off warning might be
+    of the library does not configure logging_modi, the one-off warning might be
     produced; to avoid this, the library developer simply needs to instantiate
     a NullHandler and add it to the top-level logger of the library module or
     package.
@@ -2238,11 +2238,11 @@ _warnings_showwarning = None
 
 def _showwarning(message, category, filename, lineno, file=None, line=None):
     """
-    Implementation of showwarnings which redirects to logging, which will first
+    Implementation of showwarnings which redirects to logging_modi, which will first
     check to see if the file parameter is None. If a file is specified, it will
     delegate to the original warnings implementation of showwarning. Otherwise,
     it will call warnings.formatwarning and will log the resulting string to a
-    warnings logger named "py.warnings" with level logging.WARNING.
+    warnings logger named "py.warnings" with level logging_modi.WARNING.
     """
     if file is not None:
         if _warnings_showwarning is not None:
@@ -2258,8 +2258,8 @@ def _showwarning(message, category, filename, lineno, file=None, line=None):
 
 def captureWarnings(capture):
     """
-    If capture is true, redirect all warnings to the logging package.
-    If capture is False, ensure that warnings are not redirected to logging
+    If capture is true, redirect all warnings to the logging_modi package.
+    If capture is False, ensure that warnings are not redirected to logging_modi
     but to their original destinations.
     """
     global _warnings_showwarning

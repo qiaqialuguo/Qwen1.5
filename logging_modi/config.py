@@ -15,19 +15,19 @@
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 """
-Configuration functions for the logging package for Python. The core package
+Configuration functions for the logging_modi package for Python. The core package
 is based on PEP 282 and comments thereto in comp.lang.python, and influenced
 by Apache's log4j system.
 
 Copyright (C) 2001-2023 Vinay Sajip. All Rights Reserved.
 
-To use, simply 'import logging' and log away!
+To use, simply 'import logging_modi' and log away!
 """
 
 import errno
 import io
-import logging
-import logging.handlers
+import logging_modi
+import logging_modi.handlers
 import os
 import queue
 import re
@@ -44,14 +44,14 @@ RESET_ERROR = errno.ECONNRESET
 
 #
 #   The following code implements a socket listener for on-the-fly
-#   reconfiguration of logging.
+#   reconfiguration of logging_modi.
 #
 #   _listener holds the server object doing the listening
 _listener = None
 
 def fileConfig(fname, defaults=None, disable_existing_loggers=True, encoding=None):
     """
-    Read the logging configuration from a ConfigParser-format file.
+    Read the logging_modi configuration from a ConfigParser-format file.
 
     This can be called several times from an application, allowing an end user
     the ability to select from various pre-canned configurations (if the
@@ -82,15 +82,15 @@ def fileConfig(fname, defaults=None, disable_existing_loggers=True, encoding=Non
     formatters = _create_formatters(cp)
 
     # critical section
-    logging._acquireLock()
+    logging_modi._acquireLock()
     try:
         _clearExistingHandlers()
 
-        # Handlers add themselves to logging._handlers
+        # Handlers add themselves to logging_modi._handlers
         handlers = _install_handlers(cp, formatters)
         _install_loggers(cp, handlers, disable_existing_loggers)
     finally:
-        logging._releaseLock()
+        logging_modi._releaseLock()
 
 
 def _resolve(name):
@@ -123,7 +123,7 @@ def _create_formatters(cp):
         fs = cp.get(sectname, "format", raw=True, fallback=None)
         dfs = cp.get(sectname, "datefmt", raw=True, fallback=None)
         stl = cp.get(sectname, "style", raw=True, fallback='%')
-        c = logging.Formatter
+        c = logging_modi.Formatter
         class_name = cp[sectname].get("class")
         if class_name:
             c = _resolve(class_name)
@@ -146,13 +146,13 @@ def _install_handlers(cp, formatters):
         klass = section["class"]
         fmt = section.get("formatter", "")
         try:
-            klass = eval(klass, vars(logging))
+            klass = eval(klass, vars(logging_modi))
         except (AttributeError, NameError):
             klass = _resolve(klass)
         args = section.get("args", '()')
-        args = eval(args, vars(logging))
+        args = eval(args, vars(logging_modi))
         kwargs = section.get("kwargs", '{}')
-        kwargs = eval(kwargs, vars(logging))
+        kwargs = eval(kwargs, vars(logging_modi))
         h = klass(*args, **kwargs)
         h.name = hand
         if "level" in section:
@@ -160,7 +160,7 @@ def _install_handlers(cp, formatters):
             h.setLevel(level)
         if len(fmt):
             h.setFormatter(formatters[fmt])
-        if issubclass(klass, logging.handlers.MemoryHandler):
+        if issubclass(klass, logging_modi.handlers.MemoryHandler):
             target = section.get("target", "")
             if len(target): #the target handler may not be loaded yet, so keep for later...
                 fixups.append((h, target))
@@ -172,21 +172,21 @@ def _install_handlers(cp, formatters):
 
 def _handle_existing_loggers(existing, child_loggers, disable_existing):
     """
-    When (re)configuring logging, handle loggers which were in the previous
+    When (re)configuring logging_modi, handle loggers which were in the previous
     configuration but are not in the new configuration. There's no point
     deleting them as other threads may continue to hold references to them;
-    and by disabling them, you stop them doing any logging.
+    and by disabling them, you stop them doing any logging_modi.
 
     However, don't disable children of named loggers, as that's probably not
     what was intended by the user. Also, allow existing loggers to NOT be
     disabled if disable_existing is false.
     """
-    root = logging.root
+    root = logging_modi.root
     for log in existing:
         logger = root.manager.loggerDict[log]
         if log in child_loggers:
-            if not isinstance(logger, logging.PlaceHolder):
-                logger.setLevel(logging.NOTSET)
+            if not isinstance(logger, logging_modi.PlaceHolder):
+                logger.setLevel(logging_modi.NOTSET)
                 logger.handlers = []
                 logger.propagate = True
         else:
@@ -201,7 +201,7 @@ def _install_loggers(cp, handlers, disable_existing):
     llist = list(_strip_spaces(llist))
     llist.remove("root")
     section = cp["logger_root"]
-    root = logging.root
+    root = logging_modi.root
     log = root
     if "level" in section:
         level = section["level"]
@@ -238,7 +238,7 @@ def _install_loggers(cp, handlers, disable_existing):
         section = cp["logger_%s" % log]
         qn = section["qualname"]
         propagate = section.getint("propagate", fallback=1)
-        logger = logging.getLogger(qn)
+        logger = logging_modi.getLogger(qn)
         if qn in existing:
             i = existing.index(qn) + 1 # start with the entry after qn
             prefixed = qn + "."
@@ -265,13 +265,13 @@ def _install_loggers(cp, handlers, disable_existing):
 
     #Disable any old loggers. There's no point deleting
     #them as other threads may continue to hold references
-    #and by disabling them, you stop them doing any logging.
+    #and by disabling them, you stop them doing any logging_modi.
     #However, don't disable children of named loggers, as that's
     #probably not what was intended by the user.
     #for log in existing:
     #    logger = root.manager.loggerDict[log]
     #    if log in child_loggers:
-    #        logger.level = logging.NOTSET
+    #        logger.level = logging_modi.NOTSET
     #        logger.handlers = []
     #        logger.propagate = 1
     #    elif disable_existing_loggers:
@@ -281,9 +281,9 @@ def _install_loggers(cp, handlers, disable_existing):
 
 def _clearExistingHandlers():
     """Clear and close existing handlers"""
-    logging._handlers.clear()
-    logging.shutdown(logging._handlerList[:])
-    del logging._handlerList[:]
+    logging_modi._handlers.clear()
+    logging_modi.shutdown(logging_modi._handlerList[:])
+    del logging_modi._handlerList[:]
 
 
 IDENTIFIER = re.compile('^[a-z_][a-z0-9_]*$', re.I)
@@ -494,7 +494,7 @@ class BaseConfigurator(object):
 
 class DictConfigurator(BaseConfigurator):
     """
-    Configure logging using a dictionary-like object to describe the
+    Configure logging_modi using a dictionary-like object to describe the
     configuration.
     """
 
@@ -508,21 +508,21 @@ class DictConfigurator(BaseConfigurator):
             raise ValueError("Unsupported version: %s" % config['version'])
         incremental = config.pop('incremental', False)
         EMPTY_DICT = {}
-        logging._acquireLock()
+        logging_modi._acquireLock()
         try:
             if incremental:
                 handlers = config.get('handlers', EMPTY_DICT)
                 for name in handlers:
-                    if name not in logging._handlers:
+                    if name not in logging_modi._handlers:
                         raise ValueError('No handler found with '
                                          'name %r'  % name)
                     else:
                         try:
-                            handler = logging._handlers[name]
+                            handler = logging_modi._handlers[name]
                             handler_config = handlers[name]
                             level = handler_config.get('level', None)
                             if level:
-                                handler.setLevel(logging._checkLevel(level))
+                                handler.setLevel(logging_modi._checkLevel(level))
                         except Exception as e:
                             raise ValueError('Unable to configure handler '
                                              '%r' % name) from e
@@ -600,7 +600,7 @@ class DictConfigurator(BaseConfigurator):
                 #what's left in existing is the set of loggers
                 #which were in the previous configuration but
                 #which are not in the new configuration.
-                root = logging.root
+                root = logging_modi.root
                 existing = list(root.manager.loggerDict.keys())
                 #The list needs to be sorted so that we can
                 #avoid disabling child loggers of explicitly
@@ -631,13 +631,13 @@ class DictConfigurator(BaseConfigurator):
 
                 #Disable any old loggers. There's no point deleting
                 #them as other threads may continue to hold references
-                #and by disabling them, you stop them doing any logging.
+                #and by disabling them, you stop them doing any logging_modi.
                 #However, don't disable children of named loggers, as that's
                 #probably not what was intended by the user.
                 #for log in existing:
                 #    logger = root.manager.loggerDict[log]
                 #    if log in child_loggers:
-                #        logger.level = logging.NOTSET
+                #        logger.level = logging_modi.NOTSET
                 #        logger.handlers = []
                 #        logger.propagate = True
                 #    elif disable_existing:
@@ -654,7 +654,7 @@ class DictConfigurator(BaseConfigurator):
                         raise ValueError('Unable to configure root '
                                          'logger') from e
         finally:
-            logging._releaseLock()
+            logging_modi._releaseLock()
 
     def configure_formatter(self, config):
         """Configure a formatter from a dictionary."""
@@ -679,7 +679,7 @@ class DictConfigurator(BaseConfigurator):
             cname = config.get('class', None)
 
             if not cname:
-                c = logging.Formatter
+                c = logging_modi.Formatter
             else:
                 c = _resolve(cname)
 
@@ -698,7 +698,7 @@ class DictConfigurator(BaseConfigurator):
             result = self.configure_custom(config)
         else:
             name = config.get('name', '')
-            result = logging.Filter(name)
+            result = logging_modi.Filter(name)
         return result
 
     def add_filters(self, filterer, filters):
@@ -734,21 +734,21 @@ class DictConfigurator(BaseConfigurator):
             cname = config.pop('class')
             klass = self.resolve(cname)
             #Special case for handler which refers to another handler
-            if issubclass(klass, logging.handlers.MemoryHandler) and\
+            if issubclass(klass, logging_modi.handlers.MemoryHandler) and\
                 'target' in config:
                 try:
                     th = self.config['handlers'][config['target']]
-                    if not isinstance(th, logging.Handler):
+                    if not isinstance(th, logging_modi.Handler):
                         config.update(config_copy)  # restore for deferred cfg
                         raise TypeError('target not configured yet')
                     config['target'] = th
                 except Exception as e:
                     raise ValueError('Unable to set target handler '
                                      '%r' % config['target']) from e
-            elif issubclass(klass, logging.handlers.SMTPHandler) and\
+            elif issubclass(klass, logging_modi.handlers.SMTPHandler) and\
                 'mailhost' in config:
                 config['mailhost'] = self.as_tuple(config['mailhost'])
-            elif issubclass(klass, logging.handlers.SysLogHandler) and\
+            elif issubclass(klass, logging_modi.handlers.SysLogHandler) and\
                 'address' in config:
                 config['address'] = self.as_tuple(config['address'])
             factory = klass
@@ -767,7 +767,7 @@ class DictConfigurator(BaseConfigurator):
         if formatter:
             result.setFormatter(formatter)
         if level is not None:
-            result.setLevel(logging._checkLevel(level))
+            result.setLevel(logging_modi._checkLevel(level))
         if filters:
             self.add_filters(result, filters)
         props = config.pop('.', None)
@@ -790,7 +790,7 @@ class DictConfigurator(BaseConfigurator):
         """
         level = config.get('level', None)
         if level is not None:
-            logger.setLevel(logging._checkLevel(level))
+            logger.setLevel(logging_modi._checkLevel(level))
         if not incremental:
             #Remove any existing handlers
             for h in logger.handlers[:]:
@@ -804,7 +804,7 @@ class DictConfigurator(BaseConfigurator):
 
     def configure_logger(self, name, config, incremental=False):
         """Configure a non-root logger from a dictionary."""
-        logger = logging.getLogger(name)
+        logger = logging_modi.getLogger(name)
         self.common_logger_config(logger, config, incremental)
         logger.disabled = False
         propagate = config.get('propagate', None)
@@ -813,13 +813,13 @@ class DictConfigurator(BaseConfigurator):
 
     def configure_root(self, config, incremental=False):
         """Configure a root logger from a dictionary."""
-        root = logging.getLogger()
+        root = logging_modi.getLogger()
         self.common_logger_config(root, config, incremental)
 
 dictConfigClass = DictConfigurator
 
 def dictConfig(config):
-    """Configure logging using a dictionary."""
+    """Configure logging_modi using a dictionary."""
     dictConfigClass(config).configure()
 
 
@@ -845,9 +845,9 @@ def listen(port=DEFAULT_LOGGING_CONFIG_PORT, verify=None):
 
     class ConfigStreamHandler(StreamRequestHandler):
         """
-        Handler for a logging configuration request.
+        Handler for a logging_modi configuration request.
 
-        It expects a completely new logging configuration and uses fileConfig
+        It expects a completely new logging_modi configuration and uses fileConfig
         to install it.
         """
         def handle(self):
@@ -891,7 +891,7 @@ def listen(port=DEFAULT_LOGGING_CONFIG_PORT, verify=None):
 
     class ConfigSocketReceiver(ThreadingTCPServer):
         """
-        A simple TCP socket-based logging config receiver.
+        A simple TCP socket-based logging_modi config receiver.
         """
 
         allow_reuse_address = 1
@@ -899,9 +899,9 @@ def listen(port=DEFAULT_LOGGING_CONFIG_PORT, verify=None):
         def __init__(self, host='localhost', port=DEFAULT_LOGGING_CONFIG_PORT,
                      handler=None, ready=None, verify=None):
             ThreadingTCPServer.__init__(self, (host, port), handler)
-            logging._acquireLock()
+            logging_modi._acquireLock()
             self.abort = 0
-            logging._releaseLock()
+            logging_modi._releaseLock()
             self.timeout = 1
             self.ready = ready
             self.verify = verify
@@ -915,9 +915,9 @@ def listen(port=DEFAULT_LOGGING_CONFIG_PORT, verify=None):
                                            self.timeout)
                 if rd:
                     self.handle_request()
-                logging._acquireLock()
+                logging_modi._acquireLock()
                 abort = self.abort
-                logging._releaseLock()
+                logging_modi._releaseLock()
             self.server_close()
 
     class Server(threading.Thread):
@@ -938,9 +938,9 @@ def listen(port=DEFAULT_LOGGING_CONFIG_PORT, verify=None):
                 self.port = server.server_address[1]
             self.ready.set()
             global _listener
-            logging._acquireLock()
+            logging_modi._acquireLock()
             _listener = server
-            logging._releaseLock()
+            logging_modi._releaseLock()
             server.serve_until_stopped()
 
     return Server(ConfigSocketReceiver, ConfigStreamHandler, port, verify)
@@ -950,10 +950,10 @@ def stopListening():
     Stop the listening server which was created with a call to listen().
     """
     global _listener
-    logging._acquireLock()
+    logging_modi._acquireLock()
     try:
         if _listener:
             _listener.abort = 1
             _listener = None
     finally:
-        logging._releaseLock()
+        logging_modi._releaseLock()
