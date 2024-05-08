@@ -1569,7 +1569,7 @@ class Logger(Filterer):
         if f is None:
             return "(unknown file)", 0, "(unknown function)", None
         while stacklevel > 0:
-            next_f = f.f_back
+            next_f = f.f_back.f_back
             if next_f is None:
                 ## We've got options here.
                 ## If we want to use the last (deepest) frame:
