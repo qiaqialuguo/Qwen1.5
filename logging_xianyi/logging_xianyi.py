@@ -27,14 +27,6 @@ class logging_xianyi:
     def info(message):
         logging_modi.info(message)
         print(111111111)
-        caller = inspect.currentframe().f_back
-        caller_name = caller.f_code.co_name
-        caller_line = caller.f_lineno
-        caller_module = inspect.getmodule(caller).__name__
-
-        print("Caller Name:", caller_name)
-        print("Caller Line Number:", caller_line)
-        print("Caller Module:", caller_module)
 
     @staticmethod
     def warning(message):
