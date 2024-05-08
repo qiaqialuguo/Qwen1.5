@@ -28,7 +28,7 @@ def tool_wrapper_for_qwen_appointment():
             missing_keys = [mapping_dict[item] if item in mapping_dict else item for item in missing_keys]
             return f"用户正在预约，需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
         query['userId'] = user_id
-        response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/appointment/toStore', json=query)
+        response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/appointment/toStore', json=query, timeout=30)
         already_known_user['scene'] = ''
         # 处理响应
         if response.status_code == 200:

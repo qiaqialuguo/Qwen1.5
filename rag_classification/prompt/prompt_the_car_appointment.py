@@ -34,7 +34,7 @@ TOOL_THE_CAR_APPOINTMENT = [
         }, {
             "name": "automobile_sales_service_shop_address",
             "type": "string",
-            "description": "4s店地址",
+            "description": "4s店地址,地址包括最近的、附近的等等",
             'required': True
         }, ],
         'tool_api': tool_wrapper_for_qwen_appointment()

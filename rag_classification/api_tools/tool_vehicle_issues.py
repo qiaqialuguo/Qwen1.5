@@ -37,7 +37,7 @@ def tool_wrapper_for_qwen_vehicle_issues():
         print(query)
         logging_xianyi.debug(query, user_id)
         response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/knowledge/question',
-                                 json=query)
+                                 json=query, timeout=30)
         # 处理响应
         if response.status_code == 200:
             # 请求成功
