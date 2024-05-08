@@ -1,7 +1,6 @@
 # --coding:utf-8--
 # Author:XianYi
 # Time: 202005
-import inspect
 import os
 
 real_path = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
