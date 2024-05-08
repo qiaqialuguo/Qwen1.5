@@ -1,7 +1,7 @@
 import json
 
 import requests
-
+from logging_xianyi.logging_xianyi import logging_xianyi
 
 def tool_wrapper_for_qwen_used_car_valuation():
     def tool_(query, already_known_user, user_id, original_question=None):
@@ -14,6 +14,7 @@ def tool_wrapper_for_qwen_used_car_valuation():
                 already_known_user['used_car_valuation'][key] = value
         query = already_known_user['used_car_valuation']
         print(query)
+        logging_xianyi.debug(query, user_id)
         if ('vehicle_brand_name' not in query or 'vehicle_series' not in query
                 or 'vehicle_model_year' not in query or 'vehicle_mileage' not in query
                 or 'vehicle_licensing_year' not in query):

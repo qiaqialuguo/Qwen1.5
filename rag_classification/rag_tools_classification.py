@@ -22,14 +22,16 @@ from rag_classification.prompt.prompt_vehicle_issues import TOOL_VEHICLE_ISSUES,
     REACT_PROMPT_VEHICLE_ISSUES
 from rag_classification.prompt.prompt_what_scenes import TOOL_WHAT_SCENES, REACT_PROMPT_WHAT_SCENES, \
     TOOL_DESC_WHAT_SCENES
+from logging_xianyi.logging_xianyi import logging_xianyi
 
 
-def build_planning_prompt(query, already_known_user):
+def build_planning_prompt(query, already_known_user,user_id):
     #  ensure_ascii=False：非ascii不会被转义
     tool_descs = []
     tool_names = []
     if '' == already_known_user['scene']:
         print('无预置场景')
+        logging_xianyi.debug('无预置场景', user_id)
         for info in TOOLS:
             tool_descs.append(
                 TOOL_DESC.format(
@@ -46,6 +48,7 @@ def build_planning_prompt(query, already_known_user):
         return prompt
     elif 'name' == already_known_user['scene']:
         print('进入身份询问场景')
+        logging_xianyi.debug('进入身份询问场景', user_id)
         info = TOOL_NAME[0]
         tool_descs.append(
             TOOL_DESC_NAME.format(
@@ -64,6 +67,7 @@ def build_planning_prompt(query, already_known_user):
         return prompt
     elif 'buy_car' == already_known_user['scene']:
         print('进入推荐车场景')
+        logging_xianyi.debug('进入推荐车场景', user_id)
         info = TOOL_BUY_CAR[0]
         tool_descs.append(
             TOOL_DESC_BUY_CAR.format(
@@ -82,6 +86,7 @@ def build_planning_prompt(query, already_known_user):
         return prompt
     elif "used_car_valuation" == already_known_user['scene']:
         print('进入二手车估值场景')
+        logging_xianyi.debug('进入二手车估值场景', user_id)
         info = TOOL_USED_CAR_VALUATION[0]
         tool_descs.append(
             TOOL_DESC_USED_CAR_VALUATION.format(
@@ -100,6 +105,7 @@ def build_planning_prompt(query, already_known_user):
         return prompt
     elif "the_car_appointment" == already_known_user['scene']:
         print('进入预约场景')
+        logging_xianyi.debug('进入预约场景', user_id)
         info = TOOL_THE_CAR_APPOINTMENT[0]
         formatted_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         tool_descs.append(
@@ -118,6 +124,7 @@ def build_planning_prompt(query, already_known_user):
         return prompt
     elif "vehicle_issues" == already_known_user['scene']:
         print('进入汽车相关问题场景')
+        logging_xianyi.debug('进入汽车相关问题场景', user_id)
         info = TOOL_VEHICLE_ISSUES[0]
         tool_descs.append(
             TOOL_DESC_VEHICLE_ISSUES.format(
@@ -136,6 +143,7 @@ def build_planning_prompt(query, already_known_user):
         return prompt
     elif 'what_scenes' == already_known_user['scene']:
         print('进入功能范围场景')
+        logging_xianyi.debug('进入功能范围场景', user_id)
         info = TOOL_WHAT_SCENES[0]
         tool_descs.append(
             TOOL_DESC_WHAT_SCENES.format(
@@ -154,6 +162,7 @@ def build_planning_prompt(query, already_known_user):
         return prompt
     elif 'no_scene' == already_known_user['scene']:
         print('进入无场景问答')
+        logging_xianyi.debug('进入无场景问答', user_id)
         prompt = REACT_PROMPT_NO_SCENE.format(query=query)
         return prompt
 
@@ -200,7 +209,7 @@ def parse_latest_plugin_call(text: str) -> Tuple[str, str]:
     return '', ''
 
 
-def build_planning_prompt_final(query, scene, Extracted_Json, api_output):
+def build_planning_prompt_final(query, scene, Extracted_Json, api_output,user_id):
     #  ensure_ascii=False：非ascii不会被转义
     tool_descs = []
     tool_names = []

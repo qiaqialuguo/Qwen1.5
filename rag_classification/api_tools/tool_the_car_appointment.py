@@ -1,6 +1,7 @@
 import json
 
 import requests
+from logging_xianyi.logging_xianyi import logging_xianyi
 
 
 def tool_wrapper_for_qwen_appointment():
@@ -14,6 +15,7 @@ def tool_wrapper_for_qwen_appointment():
                 already_known_user['the_car_appointment'][key] = value
         query = already_known_user['the_car_appointment']
         print(query)
+        logging_xianyi.debug(query, user_id)
         if 'appointment_time' not in query:
             missing_keys = [key for key in ['appointment_time'] if key not in query]
             already_list = [(key, value) for key, value in already_known_user['the_car_appointment'].items()]

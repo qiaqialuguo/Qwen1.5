@@ -12,6 +12,7 @@ from typing import Dict, List, Literal, Optional, Union, Iterable
 from transformers import PreTrainedTokenizerFast, LogitsProcessor
 
 from rag_classification.prompt.prompt_classification import TOOLS
+from logging_xianyi.logging_xianyi import logging_xianyi
 
 _TEXT_COMPLETION_CMD = object()
 

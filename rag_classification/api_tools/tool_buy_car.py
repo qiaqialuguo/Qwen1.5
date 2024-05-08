@@ -1,6 +1,7 @@
 import json
 
 import requests
+from logging_xianyi.logging_xianyi import logging_xianyi
 
 
 def tool_wrapper_for_qwen_buy_car():
@@ -15,6 +16,7 @@ def tool_wrapper_for_qwen_buy_car():
                 already_known_user['buy_car'][key] = value
         query = already_known_user['buy_car']
         print(query)
+        logging_xianyi.debug(query,user_id)
         if 'price' not in query or 'vehicle_classification' not in query or 'energy_type' not in query:
             missing_keys = [key for key in ['price', 'vehicle_classification', 'energy_type'] if key not in query]
             already_list = [(key, value) for key, value in already_known_user['buy_car'].items()]
