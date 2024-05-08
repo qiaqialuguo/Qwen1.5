@@ -25,8 +25,8 @@ class LogConfigXianYi:
 
     def log_config(self, log_name):
         # 定义三种日志输出格式 开始
-        debug_format = '[%(asctime)s][%(threadName)s][%(filename)s:%(lineno)d][func:%(funcName)s]' \
-                          '[%(levelname)s]%(message)s'  # 其中name为getlogger指定的名字
+        debug_format = '[%(asctime)s][%(filename)s:%(lineno)d]' \
+                          '%(message)s'  # 其中name为getlogger指定的名字
 
         std_format = '[%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d]%(message)s'
 
