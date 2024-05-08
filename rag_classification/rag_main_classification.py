@@ -221,8 +221,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
             elif already_known_user['scene'] in ['buy_car', 'used_car_valuation',
                                                  'the_car_appointment', 'vehicle_issues']:
                 prompt = build_planning_prompt(query, already_known_user)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
-                conversation_scene = [{'role': 'system', 'content': '你要对用户话中的信息进行抽取并格式化成JSON'}]
+                conversation_scene.pop(0)  # 删掉之前的system
+                conversation_scene.append({'role': 'system', 'content': '你要对用户话中的信息进行抽取并格式化成JSON'})
                 conversation_scene.append({'role': 'user', 'content': prompt})
+                print(conversation_scene)
                 print(prompt)
                 # 模型进行抽取
                 request_param = {'temperature': None, 'top_k': None, 'top_p': None, 'do_sample': False,
