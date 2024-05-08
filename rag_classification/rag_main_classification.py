@@ -182,7 +182,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     end_time - start_time,
                     len(response),
                     '时间没变' if end_time == start_time else len(response) / (end_time - start_time),
-                    len(str(conversation)),
+                    len(str(conversation_scene)),
                     (end_mem - start_mem) / 1024
                 )
                 print('\033[1;44m', log_message, '\033[0m')
@@ -242,7 +242,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     end_time - start_time,
                     len(response),
                     '时间没变' if end_time == start_time else len(response) / (end_time - start_time),
-                    len(str(conversation)),
+                    len(str(conversation_scene)),
                     (end_mem - start_mem) / 1024
                 )
                 print('\033[1;44m', log_message, '\033[0m')
@@ -291,7 +291,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     classify_time - start_time,
                     len(response),
                     '时间没变' if classify_time == start_time else len(response) / (classify_time - start_time),
-                    len(str(conversation)),
+                    len(str(conversation_scene)),
                     (classify_mem - start_mem) / 1024
                 )
                 print('\033[1;37m', log_message, '\033[0m')
@@ -350,7 +350,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     end_time - start_time,
                     len(response),
                     '时间没变' if end_time == start_time else len(response) / (end_time - start_time),
-                    len(str(conversation)),
+                    len(str(conversation_scene)),
                     (end_mem - start_mem) / 1024
                 )
                 print('\033[1;44m', log_message, '\033[0m')

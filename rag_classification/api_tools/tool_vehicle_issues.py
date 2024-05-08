@@ -8,7 +8,7 @@ def tool_wrapper_for_qwen_vehicle_issues():
         try:
             query = json.loads(query)
         except:
-            pass
+            query = {}
             # raise Exception("vehicle_issues模型抽取后不是JSON：" + query)
         query_tmp = {}
         for key, value in query.items():
