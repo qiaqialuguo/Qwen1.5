@@ -205,7 +205,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                                               choices=[choice_data],
                                               object='chat.completion')
             # 不需要提取直接调用API
-            elif already_known_user['scene'] in ['name', 'what_scenes']:
+            elif already_known_user['scene'] in ['name', 'what_scenes', 'search_web']:
                 prompt = build_planning_prompt(query, already_known_user, request.user_id)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
                 api_output, already_known_user = use_api(response, already_known_user, request.user_id,
                                                          query)  # 抽取入参并执行api

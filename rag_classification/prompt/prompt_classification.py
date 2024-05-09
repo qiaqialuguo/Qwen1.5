@@ -43,10 +43,17 @@ TOOLS = [
     },
     {
         'name_for_human':
+            'search_web',
+        'name_for_model':
+            'search_web',
+        'description_for_model': "当不是其他的场景或问题，并且你不知道答案时，进入这个场景,比如天气问题，时间问题，生活问题等等",
+    },
+    {
+        'name_for_human':
             'no_scene',
         'name_for_model':
             'no_scene',
-        'description_for_model': "当没有其他合适的场景时，进入这个场景",
+        'description_for_model': "当没有其他合适的场景,并且你知道答案时，进入这个场景",
     }
 
 ]
