@@ -188,7 +188,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 print('\033[1;44m', log_message, '\033[0m')
                 logging_xianyi.debug(log_message, request.user_id)
 
-                _gc(args=args)
+                _gc(args=args, forced=True)
                 # response = response.split('Final Answer:')[-1]
                 history.append((query, response))
                 history_global[request.user_id] = history
@@ -247,7 +247,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 )
                 print('\033[1;44m', log_message, '\033[0m')
                 logging_xianyi.debug(log_message, request.user_id)
-                _gc(args=args)
+                _gc(args=args, forced=True)
                 response = response.split('Final Answer:')[-1]
                 history.append((query, response))
                 history_global[request.user_id] = history
@@ -355,7 +355,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 )
                 print('\033[1;44m', log_message, '\033[0m')
                 logging_xianyi.debug(log_message, request.user_id)
-                _gc(args=args)
+                _gc(args=args, forced=True)
                 # response = response.split('Final Answer:')[-1]
                 history.append((query, response))
                 history_global[request.user_id] = history

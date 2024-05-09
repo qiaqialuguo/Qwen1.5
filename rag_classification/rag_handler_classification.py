@@ -215,7 +215,7 @@ async def predict(
     yield '{}'.format(_dump_json(chunk, exclude_unset=True))
     yield '[DONE]'
 
-    _gc(args=args)
+    _gc(args=args, forced=True)
 
 
 class StopWordsLogitsProcessor(LogitsProcessor):

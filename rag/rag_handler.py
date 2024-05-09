@@ -213,7 +213,7 @@ async def predict(
     yield '{}'.format(_dump_json(chunk, exclude_unset=True))
     yield '[DONE]'
 
-    _gc(args=args)
+    _gc(args=args, forced=True)
 
 
 def tool_wrapper_for_qwen_buy_car():

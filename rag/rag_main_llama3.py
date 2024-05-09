@@ -254,7 +254,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                   '时间没变' if end_time == start_time else len(response) / (end_time - start_time), '输入长度:',
                   len(str(conversation)), '显存增加:',
                   (end_mem - start_mem) / 1024, 'G\033[0m')
-    _gc(args=args)
+    _gc(args=args, forced=True)
     response = response.split('Final Answer:')[-1]
     history.append((query, response))
     # history.append((query, api_output))  # api返回的放在后面，很重要
