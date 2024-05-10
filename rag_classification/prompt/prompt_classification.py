@@ -11,7 +11,7 @@ TOOLS = [
             'buy_car',
         'name_for_model':
             'buy_car',
-        'description_for_model': "这是一个给用户推荐车的场景。当用户想买车或者按条件查询车的时候进入这个场景。"
+        'description_for_model': "这是一个给用户推荐车的场景。当用户想买车或者想要被推荐车的时候进入这个场景。"
     },
     {
         'name_for_human':
@@ -33,7 +33,7 @@ TOOLS = [
             'vehicle_issues',
         'name_for_model':
             'vehicle_issues',
-        'description_for_model': "当用户问汽车功能，汽车故障等任何汽车相关的问题时，进入这个场景",
+        'description_for_model': "当用户问汽车功能，汽车故障等任何汽车相关的问题时，包括车辆对比时，进入这个场景",
     },{
         'name_for_human':
             'what_scenes',
