@@ -9,7 +9,7 @@ def tool_wrapper_for_qwen_search_web():
         #  场景复原
         already_known_user['scene'] = ''
         response = requests.get(f'http://192.168.110.147:10005/searcher/api/search?keywords={query}',
-                                 timeout=30)
+                                 timeout=60)
         # 处理响应
         if response.status_code == 200:
             # 请求成功

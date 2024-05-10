@@ -11,6 +11,8 @@ from rag_classification.prompt.final_answer.prompt_used_car_valuation_final impo
 from rag_classification.prompt.final_answer.prompt_vehicle_issues_final import TOOL_VEHICLE_ISSUES_FINAL, \
     TOOL_DESC_VEHICLE_ISSUES_FINAL, REACT_PROMPT_VEHICLE_ISSUES_FINAL
 from rag_classification.prompt.prompt_buy_car import REACT_PROMPT_BUY_CAR, TOOL_DESC_BUY_CAR, TOOL_BUY_CAR
+from rag_classification.prompt.prompt_change_scene import TOOL_DESC_CHANGE_SCENE, TOOLS_CHANGE_SCENE, \
+    REACT_PROMPT_CHANGE_SCENE
 from rag_classification.prompt.prompt_classification import TOOLS, TOOL_DESC, REACT_PROMPT
 from rag_classification.prompt.prompt_name import TOOL_NAME, TOOL_DESC_NAME, REACT_PROMPT_NAME
 from rag_classification.prompt.prompt_no_scene import REACT_PROMPT_NO_SCENE
@@ -26,7 +28,7 @@ from rag_classification.prompt.prompt_what_scenes import TOOL_WHAT_SCENES, REACT
 from logging_xianyi.logging_xianyi import logging_xianyi
 
 
-def build_planning_prompt(query, already_known_user,user_id):
+def build_planning_prompt(query, already_known_user, user_id):
     #  ensure_ascii=False：非ascii不会被转义
     tool_descs = []
     tool_names = []
@@ -231,7 +233,7 @@ def parse_latest_plugin_call(text: str) -> Tuple[str, str]:
     return '', ''
 
 
-def build_planning_prompt_final(query, scene, Extracted_Json, api_output,user_id):
+def build_planning_prompt_final(query, scene, Extracted_Json, api_output, user_id):
     #  ensure_ascii=False：非ascii不会被转义
     tool_descs = []
     tool_names = []
@@ -309,6 +311,27 @@ def build_planning_prompt_final(query, scene, Extracted_Json, api_output,user_id
         tool_names = ','.join(tool_names)
 
         prompt = REACT_PROMPT_VEHICLE_ISSUES_FINAL.format(tool_descs=tool_descs, tool_names=tool_names,
-                                                               query=query, Extracted_Json=Extracted_Json,
-                                                               api_output=api_output)
+                                                          query=query, Extracted_Json=Extracted_Json,
+                                                          api_output=api_output)
         return prompt
+
+
+def build_planning_prompt_change_scene(query, already_known_user, user_id):
+    #  ensure_ascii=False：非ascii不会被转义
+    tool_descs = []
+    tool_names = []
+    for info in TOOLS_CHANGE_SCENE:
+        tool_descs.append(
+            TOOL_DESC_CHANGE_SCENE.format(
+                name_for_model=info['name_for_model'],
+                name_for_human=info['name_for_human'],
+                description_for_model=info['description_for_model'],
+            )
+        )
+        tool_names.append(info['name_for_model'])
+    tool_descs = '\n\n'.join(tool_descs)
+    tool_names = ','.join(tool_names)
+
+    prompt = REACT_PROMPT_CHANGE_SCENE.format(tool_descs=tool_descs, tool_names=tool_names,
+                                              query=query,now_scene=already_known_user['scene'])
+    return prompt

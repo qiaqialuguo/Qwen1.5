@@ -1,3 +1,4 @@
+import copy
 import datetime
 import json
 import time
@@ -19,7 +20,8 @@ from rag_classification import rag_args_classification
 from rag_classification.api_tools.tool_name import tool_wrapper_for_qwen_name
 from rag_classification.rag_handler_classification import ChatCompletionRequest, ChatCompletionResponse, \
     StopWordsLogitsProcessor, parse_messages, _gc, ChatCompletionResponseChoice, ChatMessage, trim_stop_words
-from rag_classification.rag_tools_classification import build_planning_prompt, use_api, build_planning_prompt_final
+from rag_classification.rag_tools_classification import build_planning_prompt, use_api, build_planning_prompt_final, \
+    build_planning_prompt_change_scene
 from logging_xianyi.logging_xianyi import logging_xianyi
 
 
@@ -90,6 +92,14 @@ async def create_chat_completion(request: ChatCompletionRequest):
             start_mem = GPUtil.getGPUs()[0].memoryUsed
             prompt = ''
             response = ''
+            # 判断场景是否过期
+            if 'scene_time' in already_known_user:
+                if already_known_user['scene_time'] == '':
+                    already_known_user['scene_time'] = 0  # 如果清理过scene_time，设为0，表示保留时长很长
+                scene_period = time.time() - already_known_user['scene_time']
+                print('场景已保留时长' + str(scene_period))
+                if scene_period > 3600*24:  # 如果大于24小时
+                    already_known_user['scene'] = ''
             if already_known_user['scene'] == '':
                 print('组织分类prompt')
                 logging_xianyi.debug('组织分类prompt', request.user_id)
@@ -128,6 +138,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 if 0 <= i:
                     plugin_name = response[i + len('\nScene:'):].strip().split('\n')[0]
                     already_known_user['scene'] = plugin_name
+                    already_known_user['scene_time'] = time.time()  # 场景时间
                 # 如果没正确分类
                 else:
                     response = '目前没有处理分类异常，请将问题反馈给宪一处理。异常分类情况：' + response
@@ -140,9 +151,71 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     return ChatCompletionResponse(model=request.model,
                                                   choices=[choice_data],
                                                   object='chat.completion')
-            # 如果已有场景，也需要记录用户问题
+            # 如果已有场景，也需要记录用户问题,并判断是否切换场景
             else:
                 logging_xianyi.info('user:' + query, request.user_id)
+
+                print('组织切换场景prompt')
+                logging_xianyi.debug('组织切换场景prompt', request.user_id)
+                logging_xianyi.info('user:' + query, request.user_id)
+                prompt = build_planning_prompt_change_scene(query, already_known_user, request.user_id)  # 组织prompt
+                conversation.append({'role': 'user', 'content': prompt})
+                # 模型切换场景
+                request_param = {'temperature': None, 'top_k': None, 'top_p': None, 'do_sample': False,
+                                 'messages': conversation}
+                response = requests.post(f'http://192.168.110.147:10029/v1/chat/completions', json=request_param)
+                if response.status_code == 200:
+                    data = response.json()  # 获取响应数据，如果是 JSON 格式
+                    response = data['choices'][0]['message']['content']
+                else:
+                    raise Exception("大模型返回错误")
+                print(response)
+
+                classify_time = time.time()
+                classify_mem = GPUtil.getGPUs()[0].memoryUsed
+
+                # 构建日志记录信息
+                log_message = '切换判断耗时: {} 结果长度: {} 每秒字数: {} 输入长度: {} 显存增加: {} G'.format(
+                    classify_time - start_time,
+                    len(response),
+                    '时间没变' if classify_time == start_time else len(response) / (classify_time - start_time),
+                    len(str(conversation)),
+                    (classify_mem - start_mem) / 1024
+                )
+                print('\033[1;37m', log_message, '\033[0m')
+                logging_xianyi.debug(log_message, request.user_id)
+                print('\033[1;37m切换判断结果：' + response + '\033[0m')
+                logging_xianyi.debug('切换判断结果：' + response, request.user_id)
+                # 删掉分类的prompt
+                conversation.pop(len(conversation) - 1)
+                i = response.rfind('\nNew_Scene:')
+                j = response.rfind('\nProbability:')
+                # 如果正确分类
+                if 0 <= i:
+                    # probability = response[j + len('\nProbability:'):].strip().split('\n')[0].split('%')[0]
+                    plugin_name = response[i + len('\nNew_Scene:'):].strip().split('\n')[0]
+                    if (
+                            # int(probability) >= 80 and
+                            plugin_name != already_known_user['scene']):
+                       print('要切换新场景，新场景：'+plugin_name+',旧场景：'+already_known_user['scene'])
+                       logging_xianyi.debug('要切换新场景,新场景：'+plugin_name+',旧场景：'+already_known_user['scene'],request.user_id)
+                       already_known_user['scene'] = plugin_name
+                       already_known_user['scene_time'] = time.time()  # 场景时间
+                    else:
+                        already_known_user['scene_time'] = time.time()
+                # 如果没正确分类
+                else:
+                    response = '目前没有处理场景切换异常，请将问题反馈给宪一处理。异常分类情况：' + response
+                    logging_xianyi.info('assistant:' + response, request.user_id)
+                    choice_data = ChatCompletionResponseChoice(
+                        index=0,
+                        message=ChatMessage(role='assistant', content=response),
+                        finish_reason='stop',
+                    )
+                    return ChatCompletionResponse(model=request.model,
+                                                  choices=[choice_data],
+                                                  object='chat.completion')
+
             # 进入具体场景问答
             start_time = time.time()
             start_mem = GPUtil.getGPUs()[0].memoryUsed
@@ -206,7 +279,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
                                               object='chat.completion')
             # 不需要提取直接调用API
             elif already_known_user['scene'] in ['name', 'what_scenes', 'search_web']:
-                prompt = build_planning_prompt(query, already_known_user, request.user_id)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
+                prompt = build_planning_prompt(query, already_known_user,
+                                               request.user_id)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
                 api_output, already_known_user = use_api(response, already_known_user, request.user_id,
                                                          query)  # 抽取入参并执行api
                 already_known_user_global[request.user_id] = already_known_user
@@ -265,7 +339,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
             # 如果要抽取信息
             elif already_known_user['scene'] in ['buy_car', 'used_car_valuation',
                                                  'the_car_appointment', 'vehicle_issues']:
-                prompt = build_planning_prompt(query, already_known_user, request.user_id)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
+                prompt = build_planning_prompt(query, already_known_user,
+                                               request.user_id)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
                 conversation_scene.pop(0)  # 删掉之前的system
                 conversation_scene.append({'role': 'system', 'content': '你要对用户话中的信息进行抽取并格式化成JSON'})
                 conversation_scene.append({'role': 'user', 'content': prompt})
@@ -315,11 +390,18 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 except:
                     Extracted_Json = '{}'
                 print(Extracted_Json)
-                logging_xianyi.debug(Extracted_Json,request.user_id)
+                logging_xianyi.debug(Extracted_Json, request.user_id)
                 Extracted_Json = {**Extracted_Json_already, **json.loads(Extracted_Json)}
-                prompt = build_planning_prompt_final(query, scene, Extracted_Json, api_output,request.user_id)
+                # 清理value空值
+                tmp_json = {}
+                for key, value in Extracted_Json.items():
+                    # 模型抽取校验
+                    if '' != value:
+                        tmp_json[key] = value
+                Extracted_Json = tmp_json
+                prompt = build_planning_prompt_final(query, scene, Extracted_Json, api_output, request.user_id)
                 print(prompt)
-                logging_xianyi.debug(prompt,request.user_id)
+                logging_xianyi.debug(prompt, request.user_id)
                 conversation_scene = [{'role': 'system', 'content': system}]
                 conversation_scene.append({'role': 'user', 'content': prompt})
                 request_param = {'temperature': 0.7, 'top_k': 20, 'top_p': 0.8, 'do_sample': True,

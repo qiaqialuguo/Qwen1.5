@@ -35,7 +35,7 @@ def tool_wrapper_for_qwen_used_car_valuation():
         already_known_user['used_car_valuation'] = {}
 
         query['userId'] = user_id
-        response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/business/usedCarValuation',json=query, timeout=30)
+        response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/business/usedCarValuation',json=query, timeout=60)
         already_known_user['scene'] = ''
         # 处理响应
         if response.status_code == 200:

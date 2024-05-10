@@ -34,7 +34,7 @@ def tool_wrapper_for_qwen_buy_car():
             return f"正在给用户推荐车，需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
         already_known_user['buy_car'] = {}
 
-        response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/business/newCarRecommendation',json=query, timeout=30)
+        response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/business/newCarRecommendation',json=query, timeout=60)
         already_known_user['scene'] = ''
         # 处理响应
         if response.status_code == 200:

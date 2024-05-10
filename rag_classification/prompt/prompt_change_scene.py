@@ -1,10 +1,10 @@
-TOOLS = [
+TOOLS_CHANGE_SCENE = [
     {
         'name_for_human':
             'name',
         'name_for_model':
             'name',
-        'description_for_model': "返回AI助手的名字. 当用户问到你是谁或者你是谁开发的，或者你是不是谁时，进入这个场景，只问名字时不用说是谁开发的，根据用户是问的中英文来选择是中文还是英文回答，你是优必爱AI智能体",
+        'description_for_model': "返回AI助手的名字. 当用户问到你是谁或者你是谁开发的，或者你是不是谁时，进入这个场景，只问名字时不用说是谁开发的，根据用户是问的中英文来选择是中文还是英文回答，你是优必爱AI智能体-BAVA",
     },
     {
         'name_for_human':
@@ -57,17 +57,19 @@ TOOLS = [
     }
 
 ]
-TOOL_DESC = """{name_for_model}: Entering this scene with the {name_for_human} API. What is the {name_for_human} scene useful for? {description_for_model}."""
+TOOL_DESC_CHANGE_SCENE = """{name_for_model}: Entering this scene with the {name_for_human} API. What is the {name_for_human} scene useful for? {description_for_model}."""
 
-REACT_PROMPT = """你现在要对用户的问题进行分类，可供选择的场景类别有:
+REACT_PROMPT_CHANGE_SCENE = """你现在要根据上下文对用户的问题进行判断，判断用户是否想切换场景，现在处于的场景是{now_scene}，可供切换的场景类别有:
 
 {tool_descs}
 
 Use the following format:
 
-Question: the input question you must classify
+Question: the input question you must determine whether to switch scenes or not
+Now_Scene:{now_scene}
 Thought: you should always think about what to do
-Scene: the scene to enter, should be one of [{tool_names}]
+Probability: The probability of transitioning to a new scene,like 10%,20%,30%,40%,50%,60%,70%,80%,90%,100%,etc.
+New_Scene: the new scene to switch, should be one of [{tool_names}]
 
 Begin!
 
