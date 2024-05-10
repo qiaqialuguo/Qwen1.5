@@ -199,6 +199,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                             plugin_name != already_known_user['scene']):
                        print('要切换新场景，新场景：'+plugin_name+',旧场景：'+already_known_user['scene'])
                        logging_xianyi.debug('要切换新场景,新场景：'+plugin_name+',旧场景：'+already_known_user['scene'],request.user_id)
+                       already_known_user[already_known_user['scene']] = {}  # 清空旧场景记录
                        already_known_user['scene'] = plugin_name
                        already_known_user['scene_time'] = time.time()  # 场景时间
                     else:
