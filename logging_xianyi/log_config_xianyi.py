@@ -35,8 +35,8 @@ class LogConfigXianYi:
         logfile_dir = os.path.dirname(os.path.abspath(__file__)) + '/log_file/user/' + str(log_name)  # log文件的目录
         logfile_name = '{}.log'.format(self.__get_local_time())  # log文件名
         logfile_detail_name = '{}_detail.log'.format(self.__get_local_time())  # log文件名
-        error_log_dir = os.path.dirname(os.path.abspath(__file__)) + '/log_file/qwen_error/'
-        error_log_name = 'qwen_error_{}.log'.format(self.__get_local_time())  # log文件名
+        error_log_dir = os.path.dirname(os.path.abspath(__file__)) + '/log_file/error/'
+        error_log_name = 'error_{}.log'.format(self.__get_local_time())  # log文件名
         # 如果不存在定义的日志目录就创建一个
         if not os.path.isdir(os.path.dirname(os.path.abspath(__file__)) + '/log_file/user/'):
             os.mkdir(os.path.dirname(os.path.abspath(__file__)) + '/log_file/user/')

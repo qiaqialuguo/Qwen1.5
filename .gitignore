@@ -5,3 +5,4 @@ docs/_build/
 .idea
 /examples/sft/output_qwen1.5_lora/
 *.log
+/dist/

@@ -100,6 +100,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
         tokenize=False,
         add_generation_prompt=True
     )
+    print(inputs)
+    print(len(inputs.split()))
     model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
     generated_ids = model.generate(
         model_inputs.input_ids,

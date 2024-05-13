@@ -33,7 +33,7 @@ TOOLS = [
             'vehicle_issues',
         'name_for_model':
             'vehicle_issues',
-        'description_for_model': "当用户问汽车功能，汽车故障等任何汽车相关的问题时，包括车辆对比时，进入这个场景",
+        'description_for_model': "当用户问汽车功能，汽车故障等任何汽车相关的问题时，包括车辆对比，问汽车值不值得买，问新车价格时，进入这个场景",
     },{
         'name_for_human':
             'what_scenes',
