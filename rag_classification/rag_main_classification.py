@@ -157,7 +157,6 @@ async def create_chat_completion(request: ChatCompletionRequest):
 
                 print('组织切换场景prompt')
                 logging_xianyi.debug('组织切换场景prompt', request.user_id)
-                logging_xianyi.info('user:' + query, request.user_id)
                 prompt = build_planning_prompt_change_scene(query, already_known_user, request.user_id)  # 组织prompt
                 conversation.append({'role': 'user', 'content': prompt})
                 # 模型切换场景

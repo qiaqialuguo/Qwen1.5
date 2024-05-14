@@ -7,7 +7,7 @@ from logging_xianyi.logging_xianyi import logging_xianyi
 def tool_wrapper_for_qwen_appointment():
     def tool_(query, already_known_user, user_id, original_question=None):
         try:
-            query = json.loads(query)
+            query = json.loads(query.split('\n')[0])
         except:
             query = {}
         for key, value in query.items():

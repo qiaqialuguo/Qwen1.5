@@ -18,7 +18,7 @@ TOOL_BUY_CAR_FINAL = [
         }, {
             "name": "vehicle_classification",
             "type": "string",
-            "description": "车型分类可以是轿车，MPV，SUV，跑车或不限，可以多选，多选的话用英文逗号分隔，用户没说车型分类的话需要追问",
+            "description": "车型分类可以是轿车，MPV，SUV或不限，可以多选，多选的话用英文逗号分隔，用户没说车型分类的话需要追问",
             'required': False
         }, {
             "name": "energy_type",
