@@ -128,7 +128,7 @@ def get_args():
         '-c',
         '--checkpoint-path',
         type=str,
-        default='/opt/large-model/qwen/qwen1.5/Qwen1.5-14B-Chat',
+        default='/opt/large-model/qwen/qwen1.5/Qwen1.5-14B-Chat/',
         help='Checkpoint name or path, default to %(default)r',
     )
     parser.add_argument('--server-port',
@@ -139,8 +139,7 @@ def get_args():
         '--server-name',
         type=str,
         default='0.0.0.0',
-        help=
-        'Demo server name. Default: 0.0.0.0',
+        help='Demo server name. Default: 0.0.0.0',
     )
     parser.add_argument(
         '--disable-gc',
@@ -160,6 +159,7 @@ if __name__ == '__main__':
     model = AutoModelForCausalLM.from_pretrained(
         args.checkpoint_path,
         device_map='cuda'
+        # ,torch_dtype=torch.float16
         , bnb_4bit_compute_dtype=torch.float16
         , load_in_4bit=True
     ).eval()
