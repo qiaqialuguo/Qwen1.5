@@ -1,4 +1,5 @@
 import json
+import re
 
 import requests
 from logging_xianyi.logging_xianyi import logging_xianyi
@@ -6,7 +7,7 @@ from logging_xianyi.logging_xianyi import logging_xianyi
 def tool_wrapper_for_qwen_vehicle_issues():
     def tool_(query, already_known_user, user_id, original_question=None):
         try:
-            query = json.loads(query.split('\n')[0])
+            query = json.loads(re.search(r'\{.*?}', query, re.DOTALL).group(0))
         except:
             query = {}
             # raise Exception("vehicle_issues模型抽取后不是JSON：" + query)
