@@ -8,7 +8,7 @@ TOOL_USED_CAR_VALUATION_FINAL = [
             'used_car_valuation',
         'description_for_model': "这是一个给二手车估值的工具。当用户想对车辆进行估值或卖车的时候调用这个工具，"
                                  "返回的是评估出的车辆的价格，"
-                                 "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），车辆年款（vehicle_model_year），"
+                                 "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），车型（vehicle_model），"
                                  "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
                                  "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"
                                  "车身颜色（vehicle_exterior_color）。",
@@ -23,9 +23,9 @@ TOOL_USED_CAR_VALUATION_FINAL = [
             "description": "车系名称可以是X3，i3,X5等任何车系，只能有一个值",
             'required': False
         }, {
-            "name": "vehicle_model_year",
+            "name": "vehicle_model",
             "type": "string",
-            "description": "车辆年款可以是2023款，2019款，2008款等，只能有一个值",
+            "description": "车型",
             'required': False
         },{
             "name": "vehicle_licensing_year",
@@ -45,7 +45,7 @@ TOOL_USED_CAR_VALUATION_FINAL = [
         }, {
             "name": "vehicle_mileage",
             "type": "string",
-            "description": "车辆里程数是车辆行驶了多少万公里，比如1万公里，4万公里，单位是万公里，只能有一个值",
+            "description": "车辆里程数是车辆行驶了多少公里，比如10000公里，40000公里，单位是公里，只能有一个值",
             'required': False
         }, {
             "name": "vehicle_exterior_color",
