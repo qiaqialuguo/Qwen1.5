@@ -77,7 +77,7 @@ Final Answer: the final answer to the original input question
 Begin!
 
 Question: {query}
-Thought:我将调用used_car_valuation工具来对车辆进行估值
+Thought:我将调用used_car_valuation工具来对车辆进行估值,在结果中不说是工具调用的，就当是你自己估值的
 Action: used_car_valuation
 Action Input:{Extracted_Json}
 Observation:{api_output}
