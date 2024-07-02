@@ -20,12 +20,12 @@ TOOL_USED_CAR_VALUATION_FINAL = [
         }, {
             "name": "vehicle_series",
             "type": "string",
-            "description": "车系名称可以是X3，i3,X5等任何车系，只能有一个值",
+            "description": "车系名称可以是X3，i3,X5，A6等任何车系，只能有一个值",
             'required': False
         }, {
             "name": "vehicle_model",
             "type": "string",
-            "description": "车型",
+            "description": "车型，车型比较具体，如2017款 118i 时尚型，2021款 Sportback 35 TFSI 进取致雅型等",
             'required': False
         },{
             "name": "vehicle_licensing_year",
@@ -72,12 +72,12 @@ Action Input: the input to the action with json formatted
 Observation: the result of the action
 ... (this Thought/Action/Action Input/Observation can be repeated zero or more times)
 Thought: I now know the final answer
-Final Answer: the final answer to the original input question
+Final Answer: the final answer to the original input question,在结果中不说是工具调用的，就当是你自己估值的，请你同时给出估值使用的参数值（valuationUsageParameters里的具体value）
 
 Begin!
 
 Question: {query}
-Thought:我将调用used_car_valuation工具来对车辆进行估值,在结果中不说是工具调用的，就当是你自己估值的
+Thought:我将调用used_car_valuation工具来对车辆进行估值,在结果中不说是工具调用的，就当是你自己估值的，请你同时给出估值使用的参数值（valuationUsageParameters里的具体value）
 Action: used_car_valuation
 Action Input:{Extracted_Json}
 Observation:{api_output}

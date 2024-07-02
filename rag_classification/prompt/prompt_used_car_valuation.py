@@ -1,5 +1,5 @@
 from rag_classification.api_tools.tool_used_car_valuation import tool_wrapper_for_qwen_used_car_valuation
-
+# todo You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture. Knowledge cutoff: 2023-04 Current date: 2024-02-15
 TOOL_USED_CAR_VALUATION = [
     {
         'name_for_human':
@@ -20,12 +20,12 @@ TOOL_USED_CAR_VALUATION = [
         }, {
             "name": "vehicle_series",
             "type": "string",
-            "description": "车系名称可以是X3，i3,X5等任何车系，车系比较简略，只能有一个值",
+            "description": "车系名称可以是X3，i3,X5，A6等任何车系，车系比较简略，只能有一个值",
             'required': False
         }, {
             "name": "vehicle_model",
             "type": "string",
-            "description": "车型，车型是比较具体的",
+            "description": "车型，车型是比较具体的，如2017款 118i 时尚型，2021款 Sportback 35 TFSI 进取致雅型等",
             'required': False
         },{
             "name": "vehicle_licensing_year",

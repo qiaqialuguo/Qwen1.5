@@ -6,7 +6,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 # 初始化defaultdict用于存储不同类型层的计数
 layer_counts = defaultdict(int)
 
-dir = '/opt/large-model/qwen/qwen1.5/Qwen1.5-1.8B-Chat'
+dir = '/opt/large-model/qwen/qwen1.5/Qwen1.5-4B-Chat'
 # dir = "/opt/large-model/llama/llama3/Meta-Llama-3-8B-Instruct"
 
 model = AutoModelForCausalLM.from_pretrained(
@@ -31,6 +31,7 @@ layer_instances = {}
 def traverse_layers(module, depth=0):
     for name, sub_module in module.named_children():
         layer_type = sub_module.__class__.__name__
+
         fixed_params, trainable_params = count_parameters(sub_module)
 
         if layer_type not in fixed_layer_params:
@@ -45,8 +46,12 @@ def traverse_layers(module, depth=0):
         # 打印当前层的参数信息和层级
         print(
             f"{' ' * 2 * depth}{layer_type}: 第 {layer_instances[layer_type]} 层, "
-            f" {trainable_params} 个可训练参数"
+            f" {trainable_params} 个可训练参数,{name}"
         )
+        # 检查是否存在权重矩阵
+        if hasattr(sub_module, 'weight') and sub_module.weight is not None:
+            weight_shape = sub_module.weight.shape
+            print(f"{' ' * 2 * depth}{layer_type}: 层名 {name}, 权重矩阵尺寸: {weight_shape}")
 
         # 递归遍历子层
         traverse_layers(sub_module, depth + 1)
