@@ -5,9 +5,10 @@ from contextlib import asynccontextmanager
 import torch
 import uvicorn
 from fastapi import FastAPI
+from threading import Thread
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette import EventSourceResponse
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM,TextIteratorStreamer
 
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
@@ -94,32 +95,90 @@ async def create_chat_completion(request: ChatCompletionRequest):
     model.generation_config.top_k = request.top_k
     model.generation_config.top_p = request.top_p
     model.generation_config.do_sample = request.do_sample
+    is_stream = request.stream
 
-    inputs = tokenizer.apply_chat_template(
-        conversation,
-        tokenize=False,
-        add_generation_prompt=True
-    )
-    print(inputs)
-    print(len(inputs.split()))
-    model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
-    generated_ids = model.generate(
-        model_inputs.input_ids,
+    if is_stream:
+        inputs = tokenizer.apply_chat_template(
+            conversation,
+            add_generation_prompt=True,
+            return_tensors='pt',
+        )
+        generate = predict(inputs.to('cuda'),
+                           request.model,
+                           )
+        return EventSourceResponse(generate, media_type='text/event-stream')
+    else:
+        inputs = tokenizer.apply_chat_template(
+            conversation,
+            tokenize=False,
+            add_generation_prompt=True
+        )
+        print(inputs)
+        print(len(inputs.split()))
+        model_inputs = tokenizer([inputs], return_tensors="pt").to('cuda')
+        generated_ids = model.generate(
+            model_inputs.input_ids,
+            max_new_tokens=1024,
+        )
+        generated_ids = [
+            output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+        ]
+        response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+
+        choice_data = ChatCompletionResponseChoice(
+            index=0,
+            message=ChatMessage(role='assistant', content=response),
+            finish_reason='stop',
+        )
+        return ChatCompletionResponse(model=request.model,
+                                      choices=[choice_data],
+                                      object='chat.completion')
+
+async def predict(
+        inputs,
+        model_id,
+):
+    global model, tokenizer
+    choice_data = ChatCompletionResponseStreamChoice(
+        index=0, delta=DeltaMessage(role='assistant'), finish_reason=None)
+    chunk = ChatCompletionResponse(model=model_id,
+                                   choices=[choice_data],
+                                   object='chat.completion.chunk')
+    yield '{}'.format(_dump_json(chunk, exclude_unset=True))
+
+    streamer = TextIteratorStreamer(tokenizer=tokenizer, skip_prompt=True, timeout=60.0, skip_special_tokens=True)
+    generation_kwargs = dict(
+        input_ids=inputs,
+        streamer=streamer,
         max_new_tokens=1024,
     )
-    generated_ids = [
-        output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
-    ]
-    response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+    thread = Thread(target=model.generate, kwargs=generation_kwargs)
+    thread.start()
 
-    choice_data = ChatCompletionResponseChoice(
-        index=0,
-        message=ChatMessage(role='assistant', content=response),
-        finish_reason='stop',
-    )
-    return ChatCompletionResponse(model=request.model,
-                                  choices=[choice_data],
-                                  object='chat.completion')
+    for new_text in streamer:
+        choice_data = ChatCompletionResponseStreamChoice(
+            index=0, delta=DeltaMessage(content=new_text), finish_reason=None)
+        chunk = ChatCompletionResponse(model=model_id,
+                                       choices=[choice_data],
+                                       object='chat.completion.chunk')
+        yield '{}'.format(_dump_json(chunk, exclude_unset=True))
+
+    choice_data = ChatCompletionResponseStreamChoice(index=0,
+                                                     delta=DeltaMessage(),
+                                                     finish_reason='stop')
+    chunk = ChatCompletionResponse(model=model_id,
+                                   choices=[choice_data],
+                                   object='chat.completion.chunk')
+    yield '{}'.format(_dump_json(chunk, exclude_unset=True))
+    yield '[DONE]'
+
+    _gc(args=args, forced=True)
+
+def _dump_json(data: BaseModel, *args, **kwargs) -> str:
+    try:
+        return data.model_dump_json(*args, **kwargs)
+    except AttributeError:  # pydantic<2.0.0
+        return data.json(*args, **kwargs)  # noqa
 
 
 def get_args():

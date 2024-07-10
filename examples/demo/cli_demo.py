@@ -16,7 +16,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
 from transformers.trainer_utils import set_seed
 
-DEFAULT_CKPT_PATH = '/opt/large-model/qwen/qwen1.5/Qwen1.5/examples/sft/output_qwen1.5'
+DEFAULT_CKPT_PATH = '/opt/large-model/qwen/qwen1.5/Qwen1.5-1.8B-Chat/'
 
 _WELCOME_MSG = '''\
 Welcome to use Qwen1.5-Chat model, type text to start chat, type :h to show command help.
@@ -138,6 +138,7 @@ def _chat_stream(model, tokenizer, query, history):
         return_tensors='pt',
     )
     inputs = inputs.to(model.device)
+
     streamer = TextIteratorStreamer(tokenizer=tokenizer, skip_prompt=True, timeout=60.0, skip_special_tokens=True)
     generation_kwargs = dict(
         input_ids=inputs,
