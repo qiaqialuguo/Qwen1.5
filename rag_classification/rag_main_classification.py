@@ -1,5 +1,4 @@
 import copy
-import datetime
 import json
 import time
 from contextlib import asynccontextmanager
@@ -12,6 +11,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette import EventSourceResponse
+from datetime import datetime
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from transformers.generation.logits_process import LogitsProcessorList
@@ -85,7 +85,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
     # 如果用rag
     else:
         print("\033[1;42m用户【" + request.user_id + "】开始提问，生成答案中...  \033[0m\033[1;45m" + str(
-            datetime.datetime.now()) +
+            datetime.now()) +
               "  \033[0m\033[1;44m模式：非流式，使用rag\033[0m")
         logging_xianyi.debug('开始提问，生成答案中...模式：非流式，使用rag', request.user_id)
         start_time = time.time()
@@ -104,7 +104,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
             print('组织分类prompt')
             logging_xianyi.debug('组织分类prompt', request.user_id)
             logging_xianyi.info('user:' + query, request.user_id)
-            prompt = build_planning_prompt(query, already_known_user, request.user_id)  # 组织prompt
+            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
+                      .format(datetime.now().strftime("%Y-%m")
+                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                      + build_planning_prompt(query, already_known_user, request.user_id))  # 组织prompt
             conversation.append({'role': 'user', 'content': prompt})
             # 模型进行分类
             request_param = {'temperature': None, 'top_k': None, 'top_p': None, 'do_sample': False,
@@ -154,7 +157,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
             logging_xianyi.info('user:' + query, request.user_id)
             print('组织切换场景prompt')
             logging_xianyi.debug('组织切换场景prompt', request.user_id)
-            prompt = build_planning_prompt_change_scene(query, already_known_user, request.user_id)  # 组织prompt
+            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
+                      .format(datetime.now().strftime("%Y-%m")
+                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                      + build_planning_prompt_change_scene(query, already_known_user, request.user_id))  # 组织prompt
             conversation.append({'role': 'user', 'content': prompt})
             # 模型切换场景
             request_param = {'temperature': None, 'top_k': None, 'top_p': None, 'do_sample': False,
@@ -219,6 +225,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
         conversation_scene = deepcopy(conversation)  # 提取关键字时清空历史
         #  如果直接调用模型
         if 'no_scene' == already_known_user['scene']:
+            # conversation_scene.append({'role': 'user', 'content': ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
+            #                                                        .format(datetime.now().strftime("%Y-%m")
+            #                                                                , datetime.now().strftime(
+            #         "%Y-%m-%d %H:%M:%S")))})
             conversation_scene.append({'role': 'user', 'content': query})
             #  请求模型
             request_param = {'temperature': 0.7, 'top_k': 20, 'top_p': 0.8, 'do_sample': True,
@@ -237,8 +247,9 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     response = data['choices'][0]['message']['content']
                 else:
                     raise Exception("大模型返回错误")
-                response = await after_call_model(already_known_user, conversation_scene, history, history_global, query,
-                                                request, response, start_mem, start_time, stop_words,'no_sence')
+                response = await after_call_model(already_known_user, conversation_scene, history, history_global,
+                                                  query,
+                                                  request, response, start_mem, start_time, stop_words, 'no_sence')
                 choice_data = ChatCompletionResponseChoice(
                     index=0,
                     message=ChatMessage(role='assistant', content=response),
@@ -250,8 +261,11 @@ async def create_chat_completion(request: ChatCompletionRequest):
                                               object='chat.completion')
         # 不需要提取直接调用API
         elif already_known_user['scene'] in ['name', 'what_scenes', 'search_web']:
-            prompt = build_planning_prompt(query, already_known_user,
-                                           request.user_id)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
+            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
+                      .format(datetime.now().strftime("%Y-%m")
+                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                      + build_planning_prompt(query, already_known_user,
+                                              request.user_id))  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
             api_output, already_known_user = use_api(response, already_known_user, request.user_id,
                                                      query)  # 抽取入参并执行api
             already_known_user_global[request.user_id] = already_known_user
@@ -277,7 +291,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     raise Exception("大模型返回错误")
                 response = response.split('Final Answer:')[-1].strip()
                 response = await after_call_model(already_known_user, conversation_scene, history, history_global,
-                                                  query, request, response, start_mem, start_time, stop_words,'direct_api')
+                                                  query, request, response, start_mem, start_time, stop_words,
+                                                  'direct_api')
                 choice_data = ChatCompletionResponseChoice(
                     index=0,
                     message=ChatMessage(role='assistant', content=response),
@@ -289,8 +304,11 @@ async def create_chat_completion(request: ChatCompletionRequest):
         # 如果要抽取信息
         elif already_known_user['scene'] in ['buy_car', 'used_car_valuation',
                                              'the_car_appointment', 'vehicle_issues']:
-            prompt = build_planning_prompt(query, already_known_user,
-                                           request.user_id)  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
+            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
+                      .format(datetime.now().strftime("%Y-%m")
+                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                      + build_planning_prompt(query, already_known_user,
+                                              request.user_id))  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
             conversation_scene.pop(0)  # 删掉之前的system
             conversation_scene.append({'role': 'system', 'content': '你要对用户话中的信息进行抽取并格式化成JSON'})
             conversation_scene.append({'role': 'user', 'content': prompt})
@@ -348,7 +366,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 if '' != value:
                     tmp_json[key] = value
             Extracted_Json = tmp_json
-            prompt = build_planning_prompt_final(query, scene, Extracted_Json, api_output, request.user_id)
+            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
+                      .format(datetime.now().strftime("%Y-%m")
+                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                      + build_planning_prompt_final(query, scene, Extracted_Json, api_output, request.user_id))
             print(prompt)
             logging_xianyi.debug(prompt, request.user_id)
             conversation_scene = [{'role': 'system', 'content': system}]
@@ -370,7 +391,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     raise Exception("大模型返回错误")
                 response = response.split('Final Answer:')[-1].strip()
                 response = await after_call_model(already_known_user, conversation_scene, history, history_global,
-                                                  query, request, response, start_mem, start_time, stop_words, 'extract')
+                                                  query, request, response, start_mem, start_time, stop_words,
+                                                  'extract')
                 choice_data = ChatCompletionResponseChoice(
                     index=0,
                     message=ChatMessage(role='assistant', content=response),
@@ -424,6 +446,22 @@ async def event_handler(already_known_user, conversation_scene, history, history
                     else:
                         if 'Final Answer:' in buffer:
                             is_final_answer = True
+
+import re
+async def split_string(s):
+    # 定义标点符号的正则表达式模式
+    pattern = re.compile(r'([,.;!?:，。；！？：])')
+    match = pattern.search(s)
+
+    if match:
+        delimiter = match.group(0)
+        parts = s.split(delimiter, 1)  # 只拆分第一个出现的分隔符
+        part1 = parts[0] + delimiter
+        part2 = parts[1]
+        yield part1
+        yield part2
+    else:
+        yield s
 
 
 async def after_call_model(already_known_user, conversation_scene, history, history_global, query, request, response,

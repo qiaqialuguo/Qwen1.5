@@ -153,7 +153,7 @@ async def handler(generate):
             except KeyError:
                 # 如果任意一层的键不存在，则什么也不做
                 pass
-        time.sleep(0.2)
+        # time.sleep(0.2)
         yield i
 
 
