@@ -1,3 +1,4 @@
+import json
 import time
 from argparse import ArgumentParser
 from contextlib import asynccontextmanager
@@ -98,6 +99,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
     is_stream = request.stream
 
     if is_stream:
+        print(conversation)
         inputs = tokenizer.apply_chat_template(
             conversation,
             add_generation_prompt=True,
@@ -106,7 +108,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
         generate = predict(inputs.to('cuda'),
                            request.model,
                            )
-        return EventSourceResponse(generate, media_type='text/event-stream')
+        s = handler(generate)
+        return EventSourceResponse(s, media_type='text/event-stream')
     else:
         inputs = tokenizer.apply_chat_template(
             conversation,
@@ -124,6 +127,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
             output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
         ]
         response = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0]
+        print('answer: '+response)
 
         choice_data = ChatCompletionResponseChoice(
             index=0,
@@ -133,6 +137,25 @@ async def create_chat_completion(request: ChatCompletionRequest):
         return ChatCompletionResponse(model=request.model,
                                       choices=[choice_data],
                                       object='chat.completion')
+async def handler(generate):
+    s2 = ''
+    print('stream_answer: ', end='')
+    async for i in generate:
+        if i == '[DONE]':
+            # print('stream_answer: '+s2)
+            print('')  # 换个行，好看
+            pass
+        else:
+            try:
+                # s2 += json.loads(i)['choices'][0]['delta']['content']
+                # flush=True 会强制 print 函数立即将文本写入到标准输出（屏幕），而不是等到缓冲区满了或者发生换行时才写入。
+                print(json.loads(i)['choices'][0]['delta']['content'], end='', flush=True)
+            except KeyError:
+                # 如果任意一层的键不存在，则什么也不做
+                pass
+        time.sleep(0.2)
+        yield i
+
 
 async def predict(
         inputs,
