@@ -23,7 +23,6 @@ def tool_wrapper_for_qwen_appointment():
             mapping_dict = {}
             mapping_dict['appointment_time'] = '预约时间'
             mapping_dict['vehicle_maintenance_type'] = '车辆维护类型'
-            mapping_dict['vehicle_brand_name'] = '车辆品牌名称'
             mapping_dict['automobile_sales_service_shop_name'] = '4s店名称'
             mapping_dict['automobile_sales_service_shop_address'] = '4s店地址'
             missing_keys = [mapping_dict[item] if item in mapping_dict else item for item in missing_keys]
@@ -33,15 +32,17 @@ def tool_wrapper_for_qwen_appointment():
         already_known_user['scene'] = ''
         # 处理响应
         if response.status_code == 200:
-            #     请求成功
-            data = response.json()  # 获取响应数据，如果是 JSON 格式
-            column = data['column']
-            if '' == column:
-                already_known_user['the_car_appointment'] = {}
-                return data['result'], already_known_user
-            else:
-                already_known_user['the_car_appointment'].pop(column)
-                return data['result'], already_known_user
+            already_known_user['the_car_appointment'] = {}
+            # #     请求成功
+            # data = response.json()  # 获取响应数据，如果是 JSON 格式
+            # column = data['column']
+            # if '' == column:
+            #     already_known_user['the_car_appointment'] = {}
+            #     return data['result'], already_known_user
+            # else:
+            #     already_known_user['the_car_appointment'].pop(column)
+            #     return data['result'], already_known_user
+            return '_[DONE]_',already_known_user
 
         else:
             # 请求失败

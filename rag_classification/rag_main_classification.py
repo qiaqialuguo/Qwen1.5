@@ -377,12 +377,25 @@ async def create_chat_completion(request: ChatCompletionRequest):
             request_param = {'temperature': 0.7, 'top_k': 20, 'top_p': 0.8, 'do_sample': True,
                              'messages': conversation_scene, 'stream': request.stream}
             if request.stream:
-                url = 'http://192.168.110.147:10029/v1/chat/completions'  # 替换为你的实际URL
-                response = requests.post(url, json=request_param, stream=True)
+                if api_output == '_[DONE]_':
+                    response = '[DONE]'
+                else:
+                    url = 'http://192.168.110.147:10029/v1/chat/completions'  # 替换为你的实际URL
+                    response = requests.post(url, json=request_param, stream=True)
                 stream_yield = event_handler(already_known_user, conversation_scene, history, history_global, query,
                                              request, response, start_mem, start_time, stop_words, 'extract')
                 return EventSourceResponse(stream_yield, media_type='text/event-stream')
             else:
+                if scene in ['the_car_appointment', 'buy_car', 'used_car_valuation']:
+                    if api_output == '_[DONE]_':
+                        choice_data = ChatCompletionResponseChoice(
+                            index=0,
+                            message=ChatMessage(role='assistant', content='[DONE]'),
+                            finish_reason='stop',
+                        )
+                        return ChatCompletionResponse(model=request.model,
+                                                      choices=[choice_data],
+                                                      object='chat.completion')
                 response = requests.post(f'http://192.168.110.147:10029/v1/chat/completions', json=request_param)
                 if response.status_code == 200:
                     data = response.json()  # 获取响应数据，如果是 JSON 格式
@@ -408,44 +421,58 @@ async def event_handler(already_known_user, conversation_scene, history, history
     buffer = ''
     final_answer = ''
     is_final_answer = False
-    for line in response.iter_lines():
-        s = ''  # 因为最后一个[DONE]需要重新赋值，所以s不能放外面
-        if line:
-            decoded_line = line.decode('utf-8')
-            if decoded_line.startswith("data: "):
-                if decoded_line[6:] == '[DONE]':
-                    print('')
-                    if call_model_type == 'no_sence':
-                        await after_call_model(already_known_user, conversation_scene, history,
-                                               history_global, query,
-                                               request, buffer, start_mem, start_time, stop_words, call_model_type)
-                    elif call_model_type == 'direct_api':
-                        await after_call_model(already_known_user, conversation_scene, history,
-                                               history_global, query,
-                                               request, final_answer, start_mem, start_time, stop_words,
-                                               call_model_type)
-                    elif call_model_type == 'extract':
-                        await after_call_model(already_known_user, conversation_scene, history,
-                                               history_global, query,
-                                               request, final_answer, start_mem, start_time, stop_words,
-                                               call_model_type)
-                else:
-                    try:
-                        s = json.loads(decoded_line[6:])['choices'][0]['delta']['content']
-                        print(s, end='', flush=True)
-                        buffer += s
-                    except KeyError:
-                        # 如果任意一层的键不存在，则什么也不做
-                        pass
-                if call_model_type == 'no_sence':
-                    yield decoded_line[6:]
-                elif call_model_type in ['direct_api', 'extract']:
-                    if is_final_answer:
-                        final_answer += s
-                        yield decoded_line[6:]
+    if '[DONE]' == response:
+        final_answer = '结果已在卡片展示'
+        if call_model_type == 'direct_api':
+            await after_call_model(already_known_user, conversation_scene, history,
+                                   history_global, query,
+                                   request, final_answer, start_mem, start_time, stop_words,
+                                   call_model_type)
+        elif call_model_type == 'extract':
+            await after_call_model(already_known_user, conversation_scene, history,
+                                   history_global, query,
+                                   request, final_answer, start_mem, start_time, stop_words,
+                                   call_model_type)
+        yield '[DONE]'
+    else:
+        for line in response.iter_lines():
+            s = ''  # 因为最后一个[DONE]需要重新赋值，所以s不能放外面
+            if line:
+                decoded_line = line.decode('utf-8')
+                if decoded_line.startswith("data: "):
+                    if decoded_line[6:] == '[DONE]':
+                        print('')
+                        if call_model_type == 'no_sence':
+                            await after_call_model(already_known_user, conversation_scene, history,
+                                                   history_global, query,
+                                                   request, buffer, start_mem, start_time, stop_words, call_model_type)
+                        elif call_model_type == 'direct_api':
+                            await after_call_model(already_known_user, conversation_scene, history,
+                                                   history_global, query,
+                                                   request, final_answer, start_mem, start_time, stop_words,
+                                                   call_model_type)
+                        elif call_model_type == 'extract':
+                            await after_call_model(already_known_user, conversation_scene, history,
+                                                   history_global, query,
+                                                   request, final_answer, start_mem, start_time, stop_words,
+                                                   call_model_type)
                     else:
-                        if 'Final Answer:' in buffer:
-                            is_final_answer = True
+                        try:
+                            s = json.loads(decoded_line[6:])['choices'][0]['delta']['content']
+                            print(s, end='', flush=True)
+                            buffer += s
+                        except KeyError:
+                            # 如果任意一层的键不存在，则什么也不做
+                            pass
+                    if call_model_type == 'no_sence':
+                        yield decoded_line[6:]
+                    elif call_model_type in ['direct_api', 'extract']:
+                        if is_final_answer:
+                            final_answer += s
+                            yield decoded_line[6:]
+                        else:
+                            if 'Final Answer:' in buffer:
+                                is_final_answer = True
 
 import re
 async def split_string(s):

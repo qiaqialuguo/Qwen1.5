@@ -8,7 +8,7 @@ TOOL_THE_CAR_APPOINTMENT = [
             'the_car_appointment',
         'description_for_model':
             "从用户说的话中抽取用户的预约信息，现在时间是{time}，预约信息包括预约时间（appointment_time），车辆维护类型"
-            "（vehicle_maintenance_type），车辆品牌名称（vehicle_brand_name），"
+            "（vehicle_maintenance_type），"
             "4s店名称（automobile_sales_service_shop_name），"
             "4s店地址（automobile_sales_service_shop_address），用户想要预约时调用这个工具。",
         'parameters': [{
@@ -20,11 +20,6 @@ TOOL_THE_CAR_APPOINTMENT = [
             "name": "vehicle_maintenance_type",
             "type": "string",
             "description": "保养或维修二选一",
-            'required': True
-        }, {
-            "name": "vehicle_brand_name",
-            "type": "string",
-            "description": "车辆品牌名称",
             'required': True
         }, {
             "name": "automobile_sales_service_shop_name",
