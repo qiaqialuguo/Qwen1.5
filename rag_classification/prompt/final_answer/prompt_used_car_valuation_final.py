@@ -69,8 +69,8 @@ Question: the input question you must answer
 Thought: you should always think about what to do
 Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action with json formatted
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can be repeated zero or more times)
+Monitoring: the result of the action
+... (this Thought/Action/Action Input/Monitoring can be repeated zero or more times)
 Thought: I now know the final answer
 Final Answer: the final answer to the original input question,在结果中不说是工具调用的，就当是你自己估值的，请你同时给出估值使用的参数值（valuationUsageParameters里的具体value）
 
@@ -80,5 +80,5 @@ Question: {query}
 Thought:我将调用used_car_valuation工具来对车辆进行估值,在结果中不说是工具调用的，就当是你自己估值的，请你同时给出估值使用的参数值（valuationUsageParameters里的具体value）
 Action: used_car_valuation
 Action Input:{Extracted_Json}
-Observation:{api_output}
+Monitoring:{api_output}
 """

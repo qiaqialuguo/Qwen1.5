@@ -2,19 +2,21 @@ import json
 import time
 from argparse import ArgumentParser
 from contextlib import asynccontextmanager
-
+from http import HTTPStatus
+from dashscope import Generation
+import random
+import requests
 import torch
 import uvicorn
 from fastapi import FastAPI
 from threading import Thread
 from fastapi.middleware.cors import CORSMiddleware
 from sse_starlette import EventSourceResponse
-from transformers import AutoTokenizer, AutoModelForCausalLM,TextIteratorStreamer
+from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer
 
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 from typing import Dict, List, Literal, Optional, Union, Iterable
-
 
 app = FastAPI()
 
@@ -59,8 +61,8 @@ class ChatCompletionResponse(BaseModel):
 
 
 class ChatCompletionRequest(BaseModel):
-    model: Optional[str] = 'hi'
-    messages: List[ChatMessage]
+    model: Optional[str] = 'qwen2-72b-instruct'
+    messages: List[dict]
     temperature: Optional[float] = None
     top_p: Optional[float] = None
     top_k: Optional[int] = None
@@ -73,27 +75,26 @@ class ChatCompletionRequest(BaseModel):
 async def create_chat_completion(request: ChatCompletionRequest):
     global model, tokenizer
     conversation = request.messages
-    model.generation_config.temperature = request.temperature
-    model.generation_config.top_k = request.top_k
-    model.generation_config.top_p = request.top_p
-    model.generation_config.do_sample = request.do_sample
     is_stream = request.stream
 
     if is_stream:
         print(conversation)
-        inputs = tokenizer.apply_chat_template(
-            conversation,
-            add_generation_prompt=True,
-            return_tensors='pt',
-        )
-        generate = predict(inputs.to('cuda'),
+        generate = predict(conversation,
                            request.model,
                            )
         s = handler(generate)
         return EventSourceResponse(s, media_type='text/event-stream')
     else:
-        response = '不能使用非流式调用'
-        print('answer: '+response)
+        response = Generation.call(
+            request.model,
+            messages=conversation,
+            # set the random seed, optional, default to 1234 if not set
+            seed=random.randint(1, 10000),
+            result_format='message',  # set the result to be "message" format.
+            api_key='sk-777003151b354aa6889b598f9ff666b4',
+        )
+        response = response.output.choices[0]['message']['content']
+        print('answer: ' + response)
 
         choice_data = ChatCompletionResponseChoice(
             index=0,
@@ -103,6 +104,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
         return ChatCompletionResponse(model=request.model,
                                       choices=[choice_data],
                                       object='chat.completion')
+
+
 async def handler(generate):
     s2 = ''
     print('stream_answer: ', end='')
@@ -124,7 +127,7 @@ async def handler(generate):
 
 
 async def predict(
-        inputs,
+        conversation,
         model_id,
 ):
     global model, tokenizer
@@ -135,18 +138,36 @@ async def predict(
                                    object='chat.completion.chunk')
     yield '{}'.format(_dump_json(chunk, exclude_unset=True))
 
-    url = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation'  # 替换为你的实际URL
-    header = {'Authorization': 'Bearer sk-777003151b354aa6889b598f9ff666b4', 'Content-Type': 'application/json',
-              'X-DashScope-SSE': 'enable'}
+    responses = Generation.call(
+        model_id,
+        messages=conversation,
+        seed=random.randint(1, 10000),  # set the random seed, optional, default to 1234 if not set
+        result_format='message',  # set the result to be "message"  format.
+        stream=True,
+        api_key='sk-777003151b354aa6889b598f9ff666b4',
+        output_in_full=True,  # get streaming output incrementally
+    )
+    current_length = 0
+    for response in responses:
+        if response.status_code == HTTPStatus.OK:
+            content = response.output.choices[0]['message']['content']
+            if len(content) == current_length:
+                continue
+            new_text = content[current_length:]
+            current_length = len(content)
+            # print(new_text, end='', flush=True)
+            choice_data = ChatCompletionResponseStreamChoice(
+                index=0, delta=DeltaMessage(content=new_text), finish_reason=None)
+            chunk = ChatCompletionResponse(model=model_id,
+                                           choices=[choice_data],
+                                           object='chat.completion.chunk')
+            yield '{}'.format(_dump_json(chunk, exclude_unset=True))
+        else:
+            print('Request id: %s, Status code: %s, error code: %s, error message: %s' % (
+                response.request_id, response.status_code,
+                response.code, response.message
+            ))
 
-
-    for new_text in streamer:
-        choice_data = ChatCompletionResponseStreamChoice(
-            index=0, delta=DeltaMessage(content=new_text), finish_reason=None)
-        chunk = ChatCompletionResponse(model=model_id,
-                                       choices=[choice_data],
-                                       object='chat.completion.chunk')
-        yield '{}'.format(_dump_json(chunk, exclude_unset=True))
 
     choice_data = ChatCompletionResponseStreamChoice(index=0,
                                                      delta=DeltaMessage(),
@@ -196,16 +217,6 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-
-    tokenizer = AutoTokenizer.from_pretrained(args.checkpoint_path)
-
-    model = AutoModelForCausalLM.from_pretrained(
-        args.checkpoint_path,
-        device_map='cuda'
-        # ,torch_dtype=torch.float16
-        , bnb_4bit_compute_dtype=torch.float16
-        , load_in_4bit=True
-    ).eval()
 
     # * 3.运行web框架
     uvicorn.run(app, host=args.server_name, port=args.server_port, workers=1)

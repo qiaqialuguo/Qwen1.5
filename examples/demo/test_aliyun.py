@@ -11,7 +11,7 @@ response = requests.post(url, json=json.loads("""{
         "messages":[      
             {
                 "role": "user",
-                "content": "你是谁"
+                "content": "讲个故事"
             }
         ]
     }

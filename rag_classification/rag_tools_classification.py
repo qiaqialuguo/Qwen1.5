@@ -219,13 +219,13 @@ def use_api(response, already_known_user, user_id, question=None, original_quest
 def parse_latest_plugin_call(text: str) -> Tuple[str, str]:
     i = text.rfind('\nAction:')
     j = text.rfind('\nExtracted_Json:')
-    k = text.rfind('\nObservation:')
+    k = text.rfind('\nMonitoring:')
     if 0 <= i < j:  # If the text has `Action` and `Action input`,
-        if k < j:  # but does not contain `Observation`,
-            # then it is likely that `Observation` is ommited by the LLM,
+        if k < j:  # but does not contain `Monitoring`,
+            # then it is likely that `Monitoring` is ommited by the LLM,
             # because the output text may have discarded the stop word.
-            text = text.rstrip() + '\nObservation:'  # Add it back.
-            k = text.rfind('\nObservation:')
+            text = text.rstrip() + '\nMonitoring:'  # Add it back.
+            k = text.rfind('\nMonitoring:')
     if 0 <= i < j < k:
         plugin_name = text[i + len('\nAction:'):j].strip()
         plugin_args = text[j + len('\nExtracted_Json:'):k].strip()

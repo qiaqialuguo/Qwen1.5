@@ -74,8 +74,8 @@ Question: the input question you must answer
 Thought: you should always think about what to do
 Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action with json formatted
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can be repeated zero or more times)
+Monitoring: the result of the action
+... (this Thought/Action/Action Input/Monitoring can be repeated zero or more times)
 Thought: I now know the final answer
 Final Answer: the final answer to the original input question
 
@@ -85,5 +85,5 @@ Question: {query}
 Thought:我将调用buy_car工具来获取车辆信息
 Action: buy_car
 Action Input:{Extracted_Json}
-Observation:{api_output}
+Monitoring:{api_output}
 """

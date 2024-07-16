@@ -270,8 +270,8 @@ Question: the input question you must answer
 Thought: you should always think about what to do
 Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action with json formatted
-Observation: the result of the action
-... (this Thought/Action/Action Input/Observation can be repeated zero or more times)
+Monitoring: the result of the action
+... (this Thought/Action/Action Input/Monitoring can be repeated zero or more times)
 Thought: I now know the final answer
 Final Answer: the final answer to the original input question
 
@@ -407,13 +407,13 @@ def use_api(response, already_known_user, user_id):
 def parse_latest_plugin_call(text: str) -> Tuple[str, str]:
     i = text.rfind('\nAction:')
     j = text.rfind('\nAction Input:')
-    k = text.rfind('\nObservation:')
+    k = text.rfind('\nMonitoring:')
     if 0 <= i < j:  # If the text has `Action` and `Action input`,
-        if k < j:  # but does not contain `Observation`,
-            # then it is likely that `Observation` is ommited by the LLM,
+        if k < j:  # but does not contain `Monitoring`,
+            # then it is likely that `Monitoring` is ommited by the LLM,
             # because the output text may have discarded the stop word.
-            text = text.rstrip() + '\nObservation:'  # Add it back.
-            k = text.rfind('\nObservation:')
+            text = text.rstrip() + '\nMonitoring:'  # Add it back.
+            k = text.rfind('\nMonitoring:')
     if 0 <= i < j < k:
         plugin_name = text[i + len('\nAction:'):j].strip()
         plugin_args = text[j + len('\nAction Input:'):k].strip()

@@ -60,10 +60,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
     stop_words = []
     # if request.use_rag:
     stop_words = stop_words or []
-    if 'Observation:' not in stop_words:
-        stop_words.append('Observation:')
-    if 'Observation:\n' not in stop_words:
-        stop_words.append('Observation:\n')
+    if 'Monitoring:' not in stop_words:
+        stop_words.append('Monitoring:')
+    if 'Monitoring:\n' not in stop_words:
+        stop_words.append('Monitoring:\n')
     stop_words_ids = [pipeline.tokenizer.encode(_) for _ in stop_words]
 
     stop_words_logits_processor = StopWordsLogitsProcessor(
