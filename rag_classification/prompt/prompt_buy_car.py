@@ -6,7 +6,7 @@ TOOL_BUY_CAR = [
             'buy_car',
         'name_for_model':
             'buy_car',
-        'description_for_model': "这是一个记录用户对车辆预期的工具，请你尝试从用户说的话中抽取出如下预期，然后调用这个工具，"
+        'description_for_model': "这是一个记录用户对车辆预期的工具，请你尝试从用户说的话中抽取出如下预期，基于已知信息构建JSON，用户没说信息就给空json，然后调用这个工具，"
                                  "对车的预期包含价位/预算（price），车型分类（vehicle_classification），"
                                  "能源形式（energy_type），品牌类型（brand_type），车型级别（vehicle_size），座位数（number_of_seats），"
                                  "车门数（number_of_doors），车辆厢数（number_of_compartments），车辆品牌名称（vehicle_brand_name）。",
@@ -64,7 +64,7 @@ TOOL_BUY_CAR = [
 ]
 TOOL_DESC_BUY_CAR = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
 
-REACT_PROMPT_BUY_CAR = """Extracting information as best you can. You have access to the following tool:
+REACT_PROMPT_BUY_CAR = """Extracting information as best you can,提取即可，不需要解释太多.. You have access to the following tool:
 
 {tool_descs}
 

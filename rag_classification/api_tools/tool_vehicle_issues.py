@@ -35,7 +35,7 @@ def tool_wrapper_for_qwen_vehicle_issues():
         #         return f"需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
 
         query = query_tmp
-        print(query)
+        print('调用工具时的query:'+str(query))
         logging_xianyi.debug(query, user_id)
         response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/knowledge/question',
                                  json=query, timeout=60)

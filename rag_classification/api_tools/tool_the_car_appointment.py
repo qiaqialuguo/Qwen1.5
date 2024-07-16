@@ -15,7 +15,7 @@ def tool_wrapper_for_qwen_appointment():
             if '' != value and not any(substring in value for substring in ('未指定', '未知')):
                 already_known_user['the_car_appointment'][key] = value
         query = already_known_user['the_car_appointment']
-        print(query)
+        print('调用工具时的query:'+str(query))
         logging_xianyi.debug(query, user_id)
         if 'appointment_time' not in query:
             missing_keys = [key for key in ['appointment_time'] if key not in query]

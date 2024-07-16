@@ -8,9 +8,9 @@ TOOL_THE_CAR_APPOINTMENT_FINAL = [
             'the_car_appointment',
         'description_for_model':
             "用户预约车辆服务时使用这个工具，预约信息包括预约时间（appointment_time），车辆维护类型"
-            "（vehicle_maintenance_type），车辆品牌名称（vehicle_brand_name），"
+            "（vehicle_maintenance_type），"
             "4s店名称（automobile_sales_service_shop_name），"
-            "4s店地址（automobile_sales_service_shop_address），用户想要预约时调用这个工具。",
+            "4s店地址（automobile_sales_service_shop_address），用户想要预约时调用这个工具。其中预约时间是必填",
         'parameters': [{
             "name": "appointment_time",
             "type": "string",
@@ -20,22 +20,17 @@ TOOL_THE_CAR_APPOINTMENT_FINAL = [
             "name": "vehicle_maintenance_type",
             "type": "string",
             "description": "保养或维修二选一",
-            'required': True
-        }, {
-            "name": "vehicle_brand_name",
-            "type": "string",
-            "description": "车辆品牌名称",
-            'required': True
-        }, {
+            'required': False
+        },  {
             "name": "automobile_sales_service_shop_name",
             "type": "string",
             "description": "4s店名称",
-            'required': True
+            'required': False
         }, {
             "name": "automobile_sales_service_shop_address",
             "type": "string",
             "description": "4s店地址",
-            'required': True
+            'required': False
         }, ],
         'tool_api': tool_wrapper_for_qwen_appointment()
     }
@@ -54,7 +49,7 @@ Thought: you should always think about what to do
 Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action
-... (this Thought/Action/Action Input/Monitoring can be repeated zero or more times)
+... (this Thought/Action/Action Input/Monitoring can be repeated only once)
 Thought: I now know the final answer
 Final Answer: the final answer to the original input question
 

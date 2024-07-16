@@ -7,7 +7,7 @@ TOOL_THE_CAR_APPOINTMENT = [
         'name_for_model':
             'the_car_appointment',
         'description_for_model':
-            "从用户说的话中抽取用户的预约信息，现在时间是{time}，预约信息包括预约时间（appointment_time），车辆维护类型"
+            "从用户说的话中抽取用户的预约信息，基于已知信息构建JSON，用户没说信息就给空json，现在时间是{time}，预约信息包括预约时间（appointment_time），车辆维护类型"
             "（vehicle_maintenance_type），"
             "4s店名称（automobile_sales_service_shop_name），"
             "4s店地址（automobile_sales_service_shop_address），用户想要预约时调用这个工具。",
@@ -20,7 +20,7 @@ TOOL_THE_CAR_APPOINTMENT = [
             "name": "vehicle_maintenance_type",
             "type": "string",
             "description": "保养或维修二选一",
-            'required': True
+            'required': False
         }, {
             "name": "automobile_sales_service_shop_name",
             "type": "string",
@@ -38,7 +38,7 @@ TOOL_THE_CAR_APPOINTMENT = [
 ]
 TOOL_DESC_THE_CAR_APPOINTMENT = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
 
-REACT_PROMPT_THE_CAR_APPOINTMENT = """Extracting information as best you can. You have access to the following tool:
+REACT_PROMPT_THE_CAR_APPOINTMENT = """Extracting information as best you can,提取即可，不需要解释太多. You have access to the following tool:
 
 {tool_descs}
 
@@ -46,7 +46,7 @@ Use the following format:
 
 Question: the input information you must extract
 Thought: you should always think about what to do
-Extracted_Json: the extracting information with json formatted
+Extracted_Json: the extracting information with json formatted,required
 
 Begin!
 

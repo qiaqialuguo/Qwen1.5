@@ -325,7 +325,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 response = data['choices'][0]['message']['content']
             else:
                 raise Exception("大模型返回错误")
-            j = response.rfind('\nExtracted_Json:')
+            j = response.find('\nExtracted_Json:')  # 找最先出现的Extracted_Json
             classify_time = time.time()
             classify_mem = GPUtil.getGPUs()[0].memoryUsed
             # 构建日志记录信息
@@ -343,6 +343,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
             # 如果正确抽取
             # if 0 <= j:
             Extracted_Json = response[j + len('\nExtracted_Json:'):].strip()
+            Extracted_Json = Extracted_Json[:Extracted_Json.find('}') + 1]  # 不能嵌套json}
+            print('Extracted_Json:'+Extracted_Json)
             scene = already_known_user['scene']  # 在清空前获取场景
             Extracted_Json_already = deepcopy(already_known_user[scene])
             Extracted_Json_already.pop('userId') if 'userId' in Extracted_Json_already else None
@@ -356,7 +358,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 json.loads(Extracted_Json)
             except:
                 Extracted_Json = '{}'
-            print(Extracted_Json)
+            print('json.load后Extracted_Json：'+Extracted_Json)
             logging_xianyi.debug(Extracted_Json, request.user_id)
             Extracted_Json = {**Extracted_Json_already, **json.loads(Extracted_Json)}
             # 清理value空值
@@ -468,7 +470,7 @@ async def event_handler(already_known_user, conversation_scene, history, history
                         yield decoded_line[6:]
                     elif call_model_type in ['direct_api', 'extract']:
                         if is_final_answer:
-                            final_answer += s
+                            final_answer = buffer.split('Final Answer:')[-1].strip()
                             yield decoded_line[6:]
                         else:
                             if 'Final Answer:' in buffer:

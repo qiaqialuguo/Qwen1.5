@@ -11,7 +11,7 @@ TOOL_USED_CAR_VALUATION_FINAL = [
                                  "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），车型（vehicle_model），"
                                  "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
                                  "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"
-                                 "车身颜色（vehicle_exterior_color）。",
+                                 "车身颜色（vehicle_exterior_color）。其中车辆品牌、车系是必填",
         'parameters': [{
             "name": "vehicle_brand_name",
             "type": "string",
@@ -70,7 +70,7 @@ Thought: you should always think about what to do
 Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action
-... (this Thought/Action/Action Input/Monitoring can be repeated zero or more times)
+... (this Thought/Action/Action Input/Monitoring can be repeated only once)
 Thought: I now know the final answer
 Final Answer: the final answer to the original input question,在结果中不说是工具调用的，就当是你自己估值的，请你同时给出估值使用的参数值（valuationUsageParameters里的具体value）
 

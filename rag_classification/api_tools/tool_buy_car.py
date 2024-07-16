@@ -16,7 +16,7 @@ def tool_wrapper_for_qwen_buy_car():
             if '' != value and not any(substring in value for substring in ('未指定', '未知')):
                 already_known_user['buy_car'][key] = value
         query = already_known_user['buy_car']
-        print(query)
+        print('调用工具时的query:'+str(query))
         logging_xianyi.debug(query,user_id)
         if 'price' not in query or 'vehicle_classification' not in query or 'energy_type' not in query:
             missing_keys = [key for key in ['price', 'vehicle_classification', 'energy_type'] if key not in query]

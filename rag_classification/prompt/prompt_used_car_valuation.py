@@ -7,7 +7,7 @@ TOOL_USED_CAR_VALUATION = [
         'name_for_model':
             'used_car_valuation',
         'description_for_model': "这是一个给二手车估值的工具。当用户想对车辆进行估值或卖车的时候调用这个工具，"
-                                 "返回的是评估出的车辆的价格，从用户说的问题中提取车辆信息，每次只提取Question中的信息，JSON里不要加注释，"
+                                 "返回的是评估出的车辆的价格，从用户说的问题中提取车辆信息，基于已知信息构建JSON，用户没说信息就给空json，每次只提取Question中的信息，JSON里不要加注释，"
                                  "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），车型（vehicle_model），"
                                  "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
                                  "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"
@@ -59,7 +59,7 @@ TOOL_USED_CAR_VALUATION = [
 ]
 TOOL_DESC_USED_CAR_VALUATION = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
 
-REACT_PROMPT_USED_CAR_VALUATION = """Extracting information as best you can. You have access to the following tool:
+REACT_PROMPT_USED_CAR_VALUATION = """Extracting information as best you can,提取即可，不需要解释太多.. You have access to the following tool:
 
 {tool_descs}
 

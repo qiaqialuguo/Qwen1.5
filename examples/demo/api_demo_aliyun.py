@@ -93,6 +93,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
             result_format='message',  # set the result to be "message" format.
             api_key='sk-777003151b354aa6889b598f9ff666b4',
         )
+        print(response.code)
         response = response.output.choices[0]['message']['content']
         print('answer: ' + response)
 

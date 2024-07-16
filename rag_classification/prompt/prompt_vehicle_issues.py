@@ -7,7 +7,7 @@ TOOL_VEHICLE_ISSUES = [
         'name_for_model':
             'vehicle_issues',
         'description_for_model': "这个工具来提取问题中的品牌名称,车系名称,车辆年款，如果问题中没有提到品牌名称,车系名称,车辆年款，"
-                                 "has_vehicle_information为False，提到了品牌名称,车系名称,车辆年款中任何一个则为True，"
+                                 "has_vehicle_information为No，提到了品牌名称,车系名称,车辆年款中任何一个则为Yes，"
                                  "并在JSON中记录用户说的车辆信息.",
         'parameters': [{
             "name": "has_vehicle_information",
@@ -36,7 +36,7 @@ TOOL_VEHICLE_ISSUES = [
 ]
 TOOL_DESC_VEHICLE_ISSUES = """{name_for_model}: Call this tool to interact with the {name_for_human} API. What is the {name_for_human} API useful for? {description_for_model}. Parameters: {parameters} Format the arguments as a JSON object."""
 
-REACT_PROMPT_VEHICLE_ISSUES = """Extracting information as best you can. You have access to the following tool:
+REACT_PROMPT_VEHICLE_ISSUES = """Extracting information as best you can,提取即可，不需要解释太多.. You have access to the following tool:
 
 {tool_descs}
 
