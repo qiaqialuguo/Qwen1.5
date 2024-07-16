@@ -13,7 +13,7 @@ def tool_wrapper_for_qwen_buy_car():
             query = {}
         for key, value in query.items():
             # 模型抽取校验
-            if '' != value:
+            if '' != value and not any(substring in value for substring in ('未指定', '未知')):
                 already_known_user['buy_car'][key] = value
         query = already_known_user['buy_car']
         print(query)

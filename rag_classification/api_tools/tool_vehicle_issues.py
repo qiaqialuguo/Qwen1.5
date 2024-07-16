@@ -14,7 +14,7 @@ def tool_wrapper_for_qwen_vehicle_issues():
         query_tmp = {}
         for key, value in query.items():
             # 模型抽取校验
-            if '' != value:
+            if '' != value and not any(substring in value for substring in ('未指定', '未知')):
                 query_tmp[key] = value
         # if not query_tmp:
         query_tmp['question'] = original_question

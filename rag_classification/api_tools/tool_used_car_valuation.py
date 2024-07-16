@@ -14,7 +14,7 @@ def tool_wrapper_for_qwen_used_car_valuation():
         if ('vehicle_brand_name' in query or 'vehicle_series' in query):
             already_known_user['used_car_valuation'] = {}
         for key, value in query.items():
-            if '' != value:
+            if '' != value and not any(substring in value for substring in ('未指定', '未知')):
                 already_known_user['used_car_valuation'][key] = value
         query = already_known_user['used_car_valuation']
         print(query)

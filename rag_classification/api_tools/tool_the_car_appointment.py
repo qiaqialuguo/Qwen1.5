@@ -12,7 +12,7 @@ def tool_wrapper_for_qwen_appointment():
         except:
             query = {}
         for key, value in query.items():
-            if '' != value:
+            if '' != value and not any(substring in value for substring in ('未指定', '未知')):
                 already_known_user['the_car_appointment'][key] = value
         query = already_known_user['the_car_appointment']
         print(query)
@@ -46,7 +46,7 @@ def tool_wrapper_for_qwen_appointment():
 
         else:
             # 请求失败
-            already_known_user['the_car_appointment'] = {}
+            # already_known_user['the_car_appointment'] = {}
             return '抱歉，记录失败', already_known_user
 
     return tool_
