@@ -26,7 +26,7 @@ TOOLS_CHANGE_SCENE = [
         'name_for_model':
             'the_car_appointment',
         'description_for_model':
-            "用户想要预约车辆服务时进入这个场景。",
+            "用户想要预约车辆服务时进入这个场景，特别是在用户查询完自己车的公里数后，会引导用户是否预约，可以结合上下文判断用户是否要预约。",
     },
     {
         'name_for_human':
@@ -34,6 +34,12 @@ TOOLS_CHANGE_SCENE = [
         'name_for_model':
             'vehicle_issues',
         'description_for_model': "当用户问汽车功能，汽车故障等任何汽车相关的问题时，包括车辆对比时，进入这个场景",
+    },{
+        'name_for_human':
+            'check_mileage',
+        'name_for_model':
+            'check_mileage',
+        'description_for_model': "当用户问自己的车的里程数时，比如：'我的车行驶了多少公里'，进入这个场景",
     },{
         'name_for_human':
             'what_scenes',

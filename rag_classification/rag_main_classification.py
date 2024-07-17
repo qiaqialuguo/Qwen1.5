@@ -109,6 +109,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                               , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                       + build_planning_prompt(query, already_known_user, request.user_id))  # 组织prompt
             conversation.append({'role': 'user', 'content': prompt})
+            print('分类conversation：'+str(conversation))
             # 模型进行分类
             request_param = {'temperature': None, 'top_k': None, 'top_p': None, 'do_sample': False,
                              'messages': conversation, 'stream': False}
@@ -260,7 +261,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                                               choices=[choice_data],
                                               object='chat.completion')
         # 不需要提取直接调用API
-        elif already_known_user['scene'] in ['name', 'what_scenes', 'search_web']:
+        elif already_known_user['scene'] in ['name', 'what_scenes', 'search_web', 'check_mileage']:
             prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
                       .format(datetime.now().strftime("%Y-%m")
                               , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))

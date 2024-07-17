@@ -13,6 +13,8 @@ from rag_classification.prompt.final_answer.prompt_vehicle_issues_final import T
 from rag_classification.prompt.prompt_buy_car import REACT_PROMPT_BUY_CAR, TOOL_DESC_BUY_CAR, TOOL_BUY_CAR
 from rag_classification.prompt.prompt_change_scene import TOOL_DESC_CHANGE_SCENE, TOOLS_CHANGE_SCENE, \
     REACT_PROMPT_CHANGE_SCENE
+from rag_classification.prompt.prompt_check_mileage import TOOL_CHECK_MILEAGE, TOOL_DESC_CHECK_MILEAGE, \
+    REACT_PROMPT_CHECK_MILEAGE
 from rag_classification.prompt.prompt_classification import TOOLS, TOOL_DESC, REACT_PROMPT
 from rag_classification.prompt.prompt_name import TOOL_NAME, TOOL_DESC_NAME, REACT_PROMPT_NAME
 from rag_classification.prompt.prompt_no_scene import REACT_PROMPT_NO_SCENE
@@ -182,6 +184,25 @@ def build_planning_prompt(query, already_known_user, user_id):
 
         prompt = REACT_PROMPT_SEARCH_WEB.format(tool_descs=tool_descs, tool_names=tool_names, query=query)
         return prompt
+    elif 'check_mileage' == already_known_user['scene']:
+        print('进入查询用户里程场景')
+        logging_xianyi.debug('进入查询用户里程场景', user_id)
+        info = TOOL_CHECK_MILEAGE[0]
+        tool_descs.append(
+            TOOL_DESC_CHECK_MILEAGE.format(
+                name_for_model=info['name_for_model'],
+                name_for_human=info['name_for_human'],
+                description_for_model=info['description_for_model'],
+                parameters=json.dumps(info['parameters'], ensure_ascii=False),
+            )
+        )
+        tool_names.append(info['name_for_model'])
+
+        tool_descs = '\n\n'.join(tool_descs)
+        tool_names = ','.join(tool_names)
+
+        prompt = REACT_PROMPT_CHECK_MILEAGE.format(tool_descs=tool_descs, tool_names=tool_names, query=query)
+        return prompt
     elif 'no_scene' == already_known_user['scene']:
         print('进入无场景问答')
         logging_xianyi.debug('进入无场景问答', user_id)
@@ -206,6 +227,8 @@ def use_api(response, already_known_user, user_id, question=None, original_quest
         used_tool_meta = list(filter(lambda x: x["name_for_model"] == use_toolname, TOOL_WHAT_SCENES))
     elif "search_web" == already_known_user['scene']:
         used_tool_meta = list(filter(lambda x: x["name_for_model"] == use_toolname, TOOL_SEARCH_WEB))
+    elif "check_mileage" == already_known_user['scene']:
+        used_tool_meta = list(filter(lambda x: x["name_for_model"] == use_toolname, TOOL_CHECK_MILEAGE))
     else:
         raise Exception("没这个工具：" + already_known_user['scene'])
     print('使用的工具：' + used_tool_meta[0]["name_for_model"])
