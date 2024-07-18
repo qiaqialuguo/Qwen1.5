@@ -1,4 +1,4 @@
-from rag_classification.api_tools.tool_check_meleage import tool_wrapper_for_qwen_check_mileage
+from rag_classification.api_tools.tool_check_mileage import tool_wrapper_for_qwen_check_mileage
 
 TOOL_CHECK_MILEAGE = [
     {
@@ -6,7 +6,7 @@ TOOL_CHECK_MILEAGE = [
             'check_mileage',
         'name_for_model':
             'check_mileage',
-        'description_for_model': "用这个工具查询用户的里程数，并根据工具查询结果输出一段话，这段话的格式是：截止目前，您的车辆累计行驶xxxxkm，根据官方推荐，建议完成xxxx项目，请问是否需要我为您预约到店保养？.",
+        'description_for_model': "用这个工具查询用户的里程数，并把工具查询到的那段话直接输出给用户,是问句的话也直接问用户.",
         'parameters': [{
             "name": "query",
             "type": "string",
