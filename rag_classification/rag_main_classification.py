@@ -64,7 +64,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
     global history_global
     # 处理消息
     query, history, system, already_known_user = parse_messages(request.messages, request.user_id, history_global,
-                                                                already_known_user_global)
+                                                                already_known_user_global, request.history)
     already_known_user_global[request.user_id] = already_known_user
 
     conversation = [
@@ -267,7 +267,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                               , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
                       + build_planning_prompt(query, already_known_user,
                                               request.user_id))  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
-            api_output, already_known_user = use_api(response, already_known_user, request.user_id,
+            api_output, already_known_user = use_api(response, already_known_user, request.user_id,request.session_id,
                                                      query)  # 抽取入参并执行api
             already_known_user_global[request.user_id] = already_known_user
             prompt = prompt.replace('_api_output_', api_output)
@@ -349,7 +349,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
             scene = already_known_user['scene']  # 在清空前获取场景
             Extracted_Json_already = deepcopy(already_known_user[scene])
             Extracted_Json_already.pop('userId') if 'userId' in Extracted_Json_already else None
-            api_output, already_known_user = use_api(response, already_known_user, request.user_id,
+            api_output, already_known_user = use_api(response, already_known_user, request.user_id, request.session_id,
                                                      Extracted_Json, query)  # 抽取入参并执行api
             already_known_user_global[request.user_id] = already_known_user
             print('api返回结果：' + api_output)
@@ -366,7 +366,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
             tmp_json = {}
             for key, value in Extracted_Json.items():
                 # 模型抽取校验
-                if '' != value:
+                if '' != value and value:
                     tmp_json[key] = value
             Extracted_Json = tmp_json
             prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
@@ -476,6 +476,22 @@ async def event_handler(already_known_user, conversation_scene, history, history
                         else:
                             if 'Final Answer:' in buffer:
                                 is_final_answer = True
+                                if not buffer.endswith("Final Answer:"):
+                                    print(decoded_line[6:])
+                                    # 输出同一返回里Final Answer:后的内容
+                                    data = json.loads(decoded_line[6:])
+                                    # 处理 content 字段
+                                    for choice in data['choices']:
+                                        content = choice['delta']['content']
+                                        # 使用正则表达式去掉冒号前的内容,
+                                        # [\s\S]*   匹配任何字符（包括换行符），零次或多次;
+                                        # ?:   匹配第一个冒号 :
+                                        # \s* 匹配零次或多次空白字符
+                                        new_content = re.sub(r'^[\s\S]*?:\s*', '', content)
+                                        choice['delta']['content'] = new_content
+                                    new_json_string = json.dumps(data, ensure_ascii=False)
+                                    yield new_json_string
+
 
 import re
 async def split_string(s):

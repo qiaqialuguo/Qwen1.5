@@ -7,7 +7,7 @@ TOOL_USED_CAR_VALUATION_FINAL = [
         'name_for_model':
             'used_car_valuation',
         'description_for_model': "这是一个给二手车估值的工具。当用户想对车辆进行估值或卖车的时候调用这个工具，"
-                                 "返回的是评估出的车辆的价格，"
+                                 "返回的是评估出的车辆的价格,也有可能让用户继续说一些信息，请注意Monitoring返回的内容，"
                                  "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），车型（vehicle_model），"
                                  "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
                                  "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"

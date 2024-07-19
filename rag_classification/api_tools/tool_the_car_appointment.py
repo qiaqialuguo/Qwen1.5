@@ -6,13 +6,13 @@ from logging_xianyi.logging_xianyi import logging_xianyi
 
 
 def tool_wrapper_for_qwen_appointment():
-    def tool_(query, already_known_user, user_id, original_question=None):
+    def tool_(query, already_known_user, user_id, session_id, original_question=None):
         try:
             query = json.loads(re.search(r'\{.*?}', query, re.DOTALL).group(0))
         except:
             query = {}
         for key, value in query.items():
-            if '' != value and not any(substring in value for substring in ('未指定', '未知')):
+            if '' != value and value and not any(substring in value for substring in ('未指定', '未知')):
                 already_known_user['the_car_appointment'][key] = value
         query = already_known_user['the_car_appointment']
         print('调用工具时的query:'+str(query))
@@ -28,6 +28,7 @@ def tool_wrapper_for_qwen_appointment():
             missing_keys = [mapping_dict[item] if item in mapping_dict else item for item in missing_keys]
             return f"用户正在预约，需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
         query['userId'] = user_id
+        query['sessionId'] = session_id
         response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/appointment/toStore', json=query, timeout=60)
         already_known_user['scene'] = ''
         # 处理响应

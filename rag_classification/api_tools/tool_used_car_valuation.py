@@ -5,7 +5,7 @@ import requests
 from logging_xianyi.logging_xianyi import logging_xianyi
 
 def tool_wrapper_for_qwen_used_car_valuation():
-    def tool_(query, already_known_user, user_id, original_question=None):
+    def tool_(query, already_known_user, user_id, session_id, original_question=None):
         try:
             query = json.loads(re.search(r'\{.*?}', query, re.DOTALL).group(0))
         except:
@@ -14,7 +14,7 @@ def tool_wrapper_for_qwen_used_car_valuation():
         if ('vehicle_brand_name' in query or 'vehicle_series' in query):
             already_known_user['used_car_valuation'] = {}
         for key, value in query.items():
-            if '' != value and not any(substring in value for substring in ('未指定', '未知')):
+            if '' != value and value and not any(substring in value for substring in ('未指定', '未知')):
                 already_known_user['used_car_valuation'][key] = value
         query = already_known_user['used_car_valuation']
         print('调用工具时的query:'+str(query))
@@ -37,6 +37,7 @@ def tool_wrapper_for_qwen_used_car_valuation():
         # already_known_user['used_car_valuation'] = {}
 
         query['userId'] = user_id
+        query['sessionId'] = session_id
         response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/usedCarSuggest/usedCarValuation',json=query, timeout=60)
         # already_known_user['scene'] = ''
         # 处理响应

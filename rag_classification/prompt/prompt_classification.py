@@ -18,7 +18,7 @@ TOOLS = [
             'used_car_valuation',
         'name_for_model':
             'used_car_valuation',
-        'description_for_model': "这是一个给二手车估值的场景。当用户想对车辆进行估值或卖车的时候进入这个场景。"
+        'description_for_model': "这是一个给二手车估值的场景。当用户想对车辆进行估值或卖车或者问车辆价格的时候进入这个场景。"
     },
     {
         'name_for_human':
@@ -33,7 +33,7 @@ TOOLS = [
             'vehicle_issues',
         'name_for_model':
             'vehicle_issues',
-        'description_for_model': "当用户问汽车功能，汽车故障等任何汽车相关的问题时，包括车辆对比，问汽车值不值得买，问新车价格时，进入这个场景",
+        'description_for_model': "当用户问汽车功能，汽车故障等任何汽车相关的问题时，包括车辆对比，问汽车值不值得买时，进入这个场景",
     },{
         'name_for_human':
             'check_mileage',
@@ -65,7 +65,7 @@ TOOLS = [
 ]
 TOOL_DESC = """{name_for_model}: Entering this scene with the {name_for_human} API. What is the {name_for_human} scene useful for? {description_for_model}."""
 
-REACT_PROMPT = """你现在要对用户的问题进行分类，可供选择的场景类别有:
+REACT_PROMPT = """你现在要对用户的问题进行分类，只分类即可，不用解释，可供选择的场景类别有:
 
 {tool_descs}
 

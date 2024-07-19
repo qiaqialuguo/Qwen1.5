@@ -44,9 +44,11 @@ class ChatCompletionRequest(BaseModel):
     stream: Optional[bool] = False
     user_id: Optional[str] = 'default'
     use_rag: Optional[bool] = True
+    history: Optional[list[tuple]] = None
+    session_id: Optional[str] = 'default'
 
 
-def parse_messages(messages, user_id, history_global, already_known_user_global):
+def parse_messages(messages, user_id, history_global, already_known_user_global, request_history):
     if all(m.role != 'user' for m in messages):
         raise HTTPException(
             status_code=400,
@@ -83,10 +85,12 @@ def parse_messages(messages, user_id, history_global, already_known_user_global)
     if len(messages) % 2 != 0:
         raise HTTPException(status_code=400, detail='Invalid request')
 
-    if user_id in history_global:
-        history = history_global[user_id]
-        if len(history) > 10:
-            del history[:len(history) - 10]
+    # if user_id in history_global:
+    #     history = history_global[user_id]
+    #     if len(history) > 10:
+    #         del history[:len(history) - 10]
+    if request_history:
+        history = request_history
     else:
         history = []
 

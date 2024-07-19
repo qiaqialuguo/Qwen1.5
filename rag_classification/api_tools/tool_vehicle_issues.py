@@ -5,7 +5,7 @@ import requests
 from logging_xianyi.logging_xianyi import logging_xianyi
 
 def tool_wrapper_for_qwen_vehicle_issues():
-    def tool_(query, already_known_user, user_id, original_question=None):
+    def tool_(query, already_known_user, user_id, session_id, original_question=None):
         try:
             query = json.loads(re.search(r'\{.*?}', query, re.DOTALL).group(0))
         except:
@@ -14,11 +14,12 @@ def tool_wrapper_for_qwen_vehicle_issues():
         query_tmp = {}
         for key, value in query.items():
             # 模型抽取校验
-            if '' != value and not any(substring in value for substring in ('未指定', '未知')):
+            if '' != value and value and not any(substring in value for substring in ('未指定', '未知')):
                 query_tmp[key] = value
         # if not query_tmp:
         query_tmp['question'] = original_question
         query_tmp['userId'] = user_id
+        query_tmp['sessionId'] = session_id
         # 如果用户说了车型信息，需要补充全
         # else:
         #     if ('vehicle_brand_name' not in query_tmp or 'vehicle_series' not in query_tmp

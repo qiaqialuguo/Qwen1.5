@@ -210,7 +210,7 @@ def build_planning_prompt(query, already_known_user, user_id):
         return prompt
 
 
-def use_api(response, already_known_user, user_id, question=None, original_question=None):
+def use_api(response, already_known_user, user_id, session_id, question=None, original_question=None):
     use_toolname, action_input = parse_latest_plugin_call(response)
     use_toolname = already_known_user['scene']
     if "name" == already_known_user['scene']:
@@ -235,7 +235,7 @@ def use_api(response, already_known_user, user_id, question=None, original_quest
     if question:
         action_input = question
     api_output, already_known_user = used_tool_meta[0]["tool_api"](action_input, already_known_user,
-                                                                   user_id, original_question)
+                                                                   user_id, session_id, original_question)
     return api_output, already_known_user
 
 
