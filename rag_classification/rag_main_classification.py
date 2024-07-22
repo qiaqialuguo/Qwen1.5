@@ -30,7 +30,6 @@ history_global = manager.dict()
 already_known_user_global = manager.dict()
 args = rag_args_classification.get_args()
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):  # collects GPU memory
     yield
@@ -54,6 +53,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
     logging_xianyi.debug('-----------new request--------------------------------', request.user_id)
     global model, tokenizer
 
+    weekdays = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期天"]
     stop_words = []
     if 'Monitoring:' not in stop_words:
         stop_words.append('Monitoring:')
@@ -110,9 +110,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
             print('组织分类prompt')
             logging_xianyi.debug('组织分类prompt', request.user_id)
             logging_xianyi.info('user:' + query, request.user_id)
-            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
+            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}，今天是{}。'
                       .format(datetime.now().strftime("%Y-%m")
-                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                              , weekdays[datetime.now().weekday()])
                       + build_planning_prompt(query, already_known_user, request.user_id))  # 组织prompt
             conversation.append({'role': 'user', 'content': prompt})
             print('分类conversation：'+str(conversation))
@@ -164,9 +165,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
             logging_xianyi.info('user:' + query, request.user_id)
             print('组织切换场景prompt')
             logging_xianyi.debug('组织切换场景prompt', request.user_id)
-            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
+            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{},今天是{}。'
                       .format(datetime.now().strftime("%Y-%m")
-                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                              , weekdays[datetime.now().weekday()])
                       + build_planning_prompt_change_scene(query, already_known_user, request.user_id))  # 组织prompt
             conversation.append({'role': 'user', 'content': prompt})
             # 模型切换场景
@@ -268,9 +270,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
                                               object='chat.completion')
         # 不需要提取直接调用API
         elif already_known_user['scene'] in ['name', 'what_scenes', 'search_web', 'check_mileage']:
-            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
+            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{},今天是{}。'
                       .format(datetime.now().strftime("%Y-%m")
-                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                              , weekdays[datetime.now().weekday()])
                       + build_planning_prompt(query, already_known_user,
                                               request.user_id))  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
             api_output, already_known_user = use_api(response, already_known_user, request.user_id,request.session_id,
@@ -311,9 +314,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
         # 如果要抽取信息
         elif already_known_user['scene'] in ['buy_car', 'used_car_valuation',
                                              'the_car_appointment', 'vehicle_issues']:
-            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
+            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{},今天是{}。'
                       .format(datetime.now().strftime("%Y-%m")
-                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                              , weekdays[datetime.now().weekday()])
                       + build_planning_prompt(query, already_known_user,
                                               request.user_id))  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
             conversation_scene.pop(0)  # 删掉之前的system
@@ -332,7 +336,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 response = data['choices'][0]['message']['content']
             else:
                 raise Exception("大模型返回错误")
-            j = response.find('\nExtracted_Json:')  # 找最先出现的Extracted_Json
+            j = response.find('Extracted_Json:')  # 找最先出现的Extracted_Json
             classify_time = time.time()
             classify_mem = GPUtil.getGPUs()[0].memoryUsed
             # 构建日志记录信息
@@ -375,9 +379,10 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 if '' != value and value:
                     tmp_json[key] = value
             Extracted_Json = tmp_json
-            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}。'
+            prompt = ('你是 小优，一个由 优必爱 训练的大型语言模型。知识截止日期：{}。当前时间：{}，今天是{}。'
                       .format(datetime.now().strftime("%Y-%m")
-                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                              , datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                              , weekdays[datetime.now().weekday()])
                       + build_planning_prompt_final(query, scene, Extracted_Json, api_output, request.user_id))
             print(prompt)
             logging_xianyi.debug(prompt, request.user_id)

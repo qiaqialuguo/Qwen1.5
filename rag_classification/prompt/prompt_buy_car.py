@@ -68,11 +68,11 @@ REACT_PROMPT_BUY_CAR = """Extracting information as best you can,提取即可，
 
 {tool_descs}
 
-Use the following format:
+Use the following format,每种key(Question,Thought,Extracted_Json)最多只出现一次，不要重复输出，不要编例子:
 
 Question: the input information you must extract
-Thought: you should always think about what to do
-Extracted_Json: the extracting information with json formatted
+Thought: you should always think about what to do，尽可能简短
+Extracted_Json: the extracting information with json formatted，只回复本次提取的信息即可，不用把历史说的消息也加上
 
 Begin!
 

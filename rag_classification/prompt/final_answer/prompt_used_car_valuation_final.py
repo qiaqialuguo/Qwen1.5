@@ -7,8 +7,9 @@ TOOL_USED_CAR_VALUATION_FINAL = [
         'name_for_model':
             'used_car_valuation',
         'description_for_model': "这是一个给二手车估值的工具。当用户想对车辆进行估值或卖车的时候调用这个工具，"
-                                 "返回的是评估出的车辆的价格,也有可能让用户继续说一些信息，请注意Monitoring返回的内容，"
-                                 "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），车型（vehicle_model），"
+                                 "返回的是评估出的车辆的价格,也有可能让用户继续回答一些信息，请注意Monitoring返回的内容，"
+                                 "如果说需要继续询问用户的时候就问用户信息"
+                                 "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），"
                                  "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
                                  "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"
                                  "车身颜色（vehicle_exterior_color）。其中车辆品牌、车系是必填",
@@ -23,11 +24,6 @@ TOOL_USED_CAR_VALUATION_FINAL = [
             "description": "车系名称可以是X3，i3,X5，A6等任何车系，只能有一个值",
             'required': False
         }, {
-            "name": "vehicle_model",
-            "type": "string",
-            "description": "车型，车型比较具体，如2017款 118i 时尚型，2021款 Sportback 35 TFSI 进取致雅型等",
-            'required': False
-        },{
             "name": "vehicle_licensing_year",
             "type": "string",
             "description": "车辆上牌年份是一个具体年份，比如2016年,2020年,2021年,2023年等，只能有一个值",
@@ -45,7 +41,7 @@ TOOL_USED_CAR_VALUATION_FINAL = [
         }, {
             "name": "vehicle_mileage",
             "type": "string",
-            "description": "车辆里程数是车辆行驶了多少公里，比如10000公里，40000公里，单位是公里，只能有一个值",
+            "description": "车辆里程数是车辆行驶了多少公里，比如10000公里，40000公里，单位是公里，只能有一个值，用阿拉伯数字表示",
             'required': False
         }, {
             "name": "vehicle_exterior_color",
@@ -70,14 +66,14 @@ Thought: you should always think about what to do
 Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action
-... (this Thought/Action/Action Input/Monitoring can be repeated only once)
+
 Thought: I now know the final answer
 Final Answer: the final answer to the original input question,在结果中不说是工具调用的，就当是你自己估值的，请你同时给出估值使用的参数值（valuationUsageParameters里的具体value）
 
 Begin!
 
 Question: {query}
-Thought:我将调用used_car_valuation工具来对车辆进行估值,在结果中不说是工具调用的，就当是你自己估值的，请你同时给出估值使用的参数值（valuationUsageParameters里的具体value）
+Thought:我将调用used_car_valuation工具来对车辆进行估值
 Action: used_car_valuation
 Action Input:{Extracted_Json}
 Monitoring:{api_output}

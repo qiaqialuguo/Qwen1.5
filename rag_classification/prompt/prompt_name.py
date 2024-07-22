@@ -26,7 +26,7 @@ REACT_PROMPT_NAME = """Answer the following questions as best you can. You have 
 Use the following format:
 
 Question: the input question you must answer
-Thought: you should always think about what to do
+Thought: you should always think about what to do，尽可能简短
 Action: name
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action

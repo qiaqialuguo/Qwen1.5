@@ -43,7 +43,7 @@ REACT_PROMPT_VEHICLE_ISSUES = """Extracting information as best you can,提取�
 Use the following format:
 
 Question: the input question you must extract
-Thought: you should always think about what to do
+Thought: you should always think about what to do，尽可能简短
 Extracted_Json: the extracting information with json formatted
 
 Begin!

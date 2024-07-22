@@ -69,11 +69,11 @@ REACT_PROMPT_CHANGE_SCENE = """你现在要根据上下文对用户的问题进�
 
 {tool_descs}
 
-Use the following format:
+Use the following format，不用解释太多，输出切换到了什么场景即可:
 
 Question: the input question you must determine whether to switch scenes or not
 Now_Scene:{now_scene}
-Thought: you should always think about what to do
+Thought: you should always think about what to do，尽可能简短
 Probability: The probability of transitioning to a new scene,like 10%,20%,30%,40%,50%,60%,70%,80%,90%,100%,etc.
 New_Scene: the new scene to switch, should be one of [{tool_names}]
 

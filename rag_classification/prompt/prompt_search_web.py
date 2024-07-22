@@ -31,7 +31,7 @@ Action: search_web
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action
 ... (this Thought/Action/Action Input/Monitoring must repeat only once)
-Thought: I now know the final answer
+Thought: I now know the final answer，尽可能简短
 Final Answer: the final answer to the original input question
 
 Begin!

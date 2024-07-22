@@ -17,7 +17,6 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStream
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 from typing import Dict, List, Literal, Optional, Union, Iterable
-
 app = FastAPI()
 
 # * 3.1.2 处理跨域

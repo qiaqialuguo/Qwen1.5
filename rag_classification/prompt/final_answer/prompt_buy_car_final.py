@@ -6,7 +6,8 @@ TOOL_BUY_CAR_FINAL = [
             'buy_car',
         'name_for_model':
             'buy_car',
-        'description_for_model': "这是一个给用户推荐车的工具，在用户想要买车或找车时使用这个工具，"
+        'description_for_model': "这是一个给用户推荐车的工具，在用户想要买车或找车时使用这个工具，请注意Monitoring返回的内容，"
+                                 "如果说需要继续询问用户的时候就问用户信息"
                                  "对车的预期包含价位/预算（price），车型分类（vehicle_classification），"
                                  "能源形式（energy_type），品牌类型（brand_type），车型级别（vehicle_size），座位数（number_of_seats），"
                                  "车门数（number_of_doors），车辆厢数（number_of_compartments），车辆品牌名称（vehicle_brand_name）。",
