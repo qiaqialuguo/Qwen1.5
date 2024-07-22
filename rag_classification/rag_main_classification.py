@@ -23,6 +23,12 @@ from rag_classification.rag_handler_classification import ChatCompletionRequest,
 from rag_classification.rag_tools_classification import build_planning_prompt, use_api, build_planning_prompt_final, \
     build_planning_prompt_change_scene
 from logging_xianyi.logging_xianyi import logging_xianyi
+from multiprocessing import Manager
+
+manager = Manager()
+history_global = manager.dict()
+already_known_user_global = manager.dict()
+args = rag_args_classification.get_args()
 
 
 @asynccontextmanager
