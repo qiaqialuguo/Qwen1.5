@@ -24,10 +24,12 @@ from rag_classification.rag_tools_classification import build_planning_prompt, u
     build_planning_prompt_change_scene
 from logging_xianyi.logging_xianyi import logging_xianyi
 from multiprocessing import Manager
+import psycopg2
+import json
 
 manager = Manager()
 history_global = manager.dict()
-already_known_user_global = manager.dict()
+# already_known_user_global = manager.dict()
 args = rag_args_classification.get_args()
 
 @asynccontextmanager
@@ -52,6 +54,14 @@ app.add_middleware(
 async def create_chat_completion(request: ChatCompletionRequest):
     logging_xianyi.debug('-----------new request--------------------------------', request.user_id)
     global model, tokenizer
+    # 连接到 PostgreSQL 数据库
+    conn = psycopg2.connect(
+        dbname="ai_voyage",
+        user="postgres",
+        password="o%c%!ll$okopba8)",
+        host="192.168.110.147"
+    )
+    cur = conn.cursor()
 
     weekdays = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期天"]
     stop_words = []
@@ -70,8 +80,9 @@ async def create_chat_completion(request: ChatCompletionRequest):
     global history_global
     # 处理消息
     query, history, system, already_known_user = parse_messages(request.messages, request.user_id, history_global,
-                                                                already_known_user_global, request.history)
-    already_known_user_global[request.user_id] = already_known_user
+                                                                cur, request.history)
+
+    # already_known_user_global[request.user_id] = already_known_user
 
     conversation = [
         {'role': 'system', 'content': system},
@@ -264,7 +275,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     message=ChatMessage(role='assistant', content=response),
                     finish_reason='stop',
                 )
-                already_known_user_global[request.user_id] = already_known_user
+                await update_already_known_user(request.user_id, already_known_user, conn, cur)
+                # already_known_user_global[request.user_id] = already_known_user
                 return ChatCompletionResponse(model=request.model,
                                               choices=[choice_data],
                                               object='chat.completion')
@@ -278,7 +290,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
                                               request.user_id))  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
             api_output, already_known_user = use_api(response, already_known_user, request.user_id,request.session_id,
                                                      query)  # 抽取入参并执行api
-            already_known_user_global[request.user_id] = already_known_user
+            await update_already_known_user(request.user_id, already_known_user, conn, cur)
+            # already_known_user_global[request.user_id] = already_known_user
             prompt = prompt.replace('_api_output_', api_output)
             print(prompt)
             logging_xianyi.debug(prompt, request.user_id)
@@ -361,7 +374,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
             Extracted_Json_already.pop('userId') if 'userId' in Extracted_Json_already else None
             api_output, already_known_user = use_api(response, already_known_user, request.user_id, request.session_id,
                                                      Extracted_Json, query)  # 抽取入参并执行api
-            already_known_user_global[request.user_id] = already_known_user
+            await update_already_known_user(request.user_id, already_known_user, conn, cur)
+            # already_known_user_global[request.user_id] = already_known_user
             print('api返回结果：' + api_output)
             logging_xianyi.debug('api返回结果：' + api_output, request.user_id)
             # 对结果整理话术
@@ -428,6 +442,16 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 return ChatCompletionResponse(model=request.model,
                                               choices=[choice_data],
                                               object='chat.completion')
+
+
+async def update_already_known_user(user_id,already_known_user, conn, cur):
+    cur.execute("INSERT INTO qwen_already_known_user_global (user_id,already_known_user) "
+                "VALUES (%s,%s) "
+                "ON CONFLICT (user_id) DO UPDATE "
+                "SET already_known_user = EXCLUDED.already_known_user", [user_id, json.dumps(already_known_user)])
+    conn.commit()
+    cur.close()
+    conn.close()
 
 
 async def event_handler(already_known_user, conversation_scene, history, history_global, query, request,
@@ -563,7 +587,7 @@ if __name__ == '__main__':
     args = rag_args_classification.get_args()
     # * 1.1 定义全局history
     history_global = dict()
-    already_known_user_global = dict()
+    # already_known_user_global = dict()
     # * 2.加载模型
     # tokenizer = AutoTokenizer.from_pretrained(args.checkpoint_path)
     #
