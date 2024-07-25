@@ -9,15 +9,17 @@ def tool_wrapper_for_qwen_buy_car():
     def tool_(query, already_known_user, user_id, session_id, original_question=None):
         try:
             query = json.loads(re.search(r'\{.*?}', query, re.DOTALL).group(0))
-        except :
+        except:
             query = {}
         for key, value in query.items():
             # 模型抽取校验
-            if '' != value and value and not any(substring in value for substring in ('未指定', '未知')):
+            if (isinstance(value, (str, int, float)) and
+                    (str(value) != '') and
+                    (str(value) and not any(substring in str(value) for substring in ('未指定', '未知')))):
                 already_known_user['buy_car'][key] = value
         query = already_known_user['buy_car']
-        print('调用工具时的query:'+str(query))
-        logging_xianyi.debug(query,user_id)
+        print('调用工具时的query:' + str(query))
+        logging_xianyi.debug(query, user_id)
         if 'price' not in query or 'vehicle_classification' not in query or 'energy_type' not in query:
             missing_keys = [key for key in ['price', 'vehicle_classification', 'energy_type'] if key not in query]
             already_list = [(key, value) for key, value in already_known_user['buy_car'].items()]
@@ -36,7 +38,8 @@ def tool_wrapper_for_qwen_buy_car():
         already_known_user['buy_car'] = {}
         query['userId'] = user_id
         query['sessionId'] = session_id
-        response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/newCarSuggest/newCarRecommendation',json=query, timeout=60)
+        response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/newCarSuggest/newCarRecommendation',
+                                 json=query, timeout=60)
         already_known_user['scene'] = ''
         # 处理响应
         if response.status_code == 200:
@@ -47,4 +50,5 @@ def tool_wrapper_for_qwen_buy_car():
         else:
             # 请求失败
             return '查询失败，请检查', already_known_user
+
     return tool_

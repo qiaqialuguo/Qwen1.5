@@ -4,6 +4,7 @@ import re
 import requests
 from logging_xianyi.logging_xianyi import logging_xianyi
 
+
 def tool_wrapper_for_qwen_vehicle_issues():
     def tool_(query, already_known_user, user_id, session_id, original_question=None):
         try:
@@ -14,7 +15,9 @@ def tool_wrapper_for_qwen_vehicle_issues():
         query_tmp = {}
         for key, value in query.items():
             # 模型抽取校验
-            if '' != value and value and not any(substring in value for substring in ('未指定', '未知')):
+            if (isinstance(value, (str, int, float)) and
+                    (str(value) != '') and
+                    (str(value) and not any(substring in str(value) for substring in ('未指定', '未知')))):
                 query_tmp[key] = value
         # if not query_tmp:
         query_tmp['question'] = original_question
@@ -36,7 +39,7 @@ def tool_wrapper_for_qwen_vehicle_issues():
         #         return f"需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
 
         query = query_tmp
-        print('调用工具时的query:'+str(query))
+        print('调用工具时的query:' + str(query))
         logging_xianyi.debug(query, user_id)
         response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/knowledge/question',
                                  json=query, timeout=60)

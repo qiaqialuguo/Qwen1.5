@@ -12,10 +12,12 @@ def tool_wrapper_for_qwen_appointment():
         except:
             query = {}
         for key, value in query.items():
-            if '' != value and value and not any(substring in value for substring in ('未指定', '未知')):
+            if (isinstance(value, (str, int, float)) and
+                    (str(value) != '') and
+                    (str(value) and not any(substring in str(value) for substring in ('未指定', '未知')))):
                 already_known_user['the_car_appointment'][key] = value
         query = already_known_user['the_car_appointment']
-        print('调用工具时的query:'+str(query))
+        print('调用工具时的query:' + str(query))
         logging_xianyi.debug(query, user_id)
         if 'appointment_time' not in query:
             missing_keys = [key for key in ['appointment_time'] if key not in query]
@@ -29,7 +31,8 @@ def tool_wrapper_for_qwen_appointment():
             return f"用户正在预约，需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
         query['userId'] = user_id
         query['sessionId'] = session_id
-        response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/appointment/toStore', json=query, timeout=60)
+        response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/appointment/toStore', json=query,
+                                 timeout=60)
         already_known_user['scene'] = ''
         # 处理响应
         if response.status_code == 200:
@@ -43,7 +46,7 @@ def tool_wrapper_for_qwen_appointment():
             # else:
             #     already_known_user['the_car_appointment'].pop(column)
             #     return data['result'], already_known_user
-            return '_[DONE]_',already_known_user
+            return '_[DONE]_', already_known_user
 
         else:
             # 请求失败

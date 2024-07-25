@@ -60,7 +60,7 @@ class ChatCompletionResponse(BaseModel):
 
 
 class ChatCompletionRequest(BaseModel):
-    model: Optional[str] = 'qwen2-72b-instruct'
+    model: Optional[str] = 'qwen-max'
     messages: List[dict]
     temperature: Optional[float] = None
     top_p: Optional[float] = None

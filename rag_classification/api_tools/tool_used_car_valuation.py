@@ -4,6 +4,7 @@ import re
 import requests
 from logging_xianyi.logging_xianyi import logging_xianyi
 
+
 def tool_wrapper_for_qwen_used_car_valuation():
     def tool_(query, already_known_user, user_id, session_id, original_question=None):
         try:
@@ -14,13 +15,15 @@ def tool_wrapper_for_qwen_used_car_valuation():
         if ('vehicle_brand_name' in query or 'vehicle_series' in query):
             already_known_user['used_car_valuation'] = {}
         for key, value in query.items():
-            if '' != value and value and not any(substring in value for substring in ('未指定', '未知')):
+            if (isinstance(value, (str, int, float)) and
+                    (str(value) != '') and
+                    (str(value) and not any(substring in str(value) for substring in ('未指定', '未知')))):
                 already_known_user['used_car_valuation'][key] = value
         query = already_known_user['used_car_valuation']
-        print('调用工具时的query:'+str(query))
+        print('调用工具时的query:' + str(query))
         logging_xianyi.debug(query, user_id)
         if ('vehicle_brand_name' not in query or 'vehicle_series' not in query):
-            missing_keys = [key for key in ['vehicle_brand_name', 'vehicle_series',] if key not in query]
+            missing_keys = [key for key in ['vehicle_brand_name', 'vehicle_series', ] if key not in query]
             already_list = [(key, value) for key, value in already_known_user['used_car_valuation'].items()]
             mapping_dict = {}
             mapping_dict['vehicle_brand_name'] = '车辆品牌名称'
@@ -38,7 +41,8 @@ def tool_wrapper_for_qwen_used_car_valuation():
 
         query['userId'] = user_id
         query['sessionId'] = session_id
-        response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/usedCarSuggest/usedCarValuation',json=query, timeout=60)
+        response = requests.post(f'http://192.168.110.147:12580/auto-ai-agent/usedCarSuggest/usedCarValuation',
+                                 json=query, timeout=60)
         # already_known_user['scene'] = ''
         # 处理响应
         if response.status_code == 200:
@@ -55,4 +59,5 @@ def tool_wrapper_for_qwen_used_car_valuation():
         else:
             # 请求失败
             return '查询失败，请检查', already_known_user
+
     return tool_
