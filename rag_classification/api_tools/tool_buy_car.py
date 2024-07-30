@@ -7,9 +7,11 @@ from logging_xianyi.logging_xianyi import logging_xianyi
 
 def tool_wrapper_for_qwen_buy_car():
     def tool_(query, already_known_user, user_id, session_id, original_question=None):
-        try:
-            query = json.loads(re.search(r'\{.*?}', query, re.DOTALL).group(0))
-        except:
+        # try:
+        #     query = json.loads(re.search(r'\{.*?}', query, re.DOTALL).group(0))
+        # except:
+        #     query = {}
+        if query == '':
             query = {}
         for key, value in query.items():
             # 模型抽取校验
@@ -32,7 +34,6 @@ def tool_wrapper_for_qwen_buy_car():
             mapping_dict['number_of_seats'] = '座位数'
             mapping_dict['number_of_doors'] = '车门数'
             mapping_dict['number_of_compartments'] = '车辆厢数'
-            mapping_dict['vehicle_brand_name'] = '车辆品牌名称'
             missing_keys = [mapping_dict[item] if item in mapping_dict else item for item in missing_keys]
             return f"正在给用户推荐车，需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
         already_known_user['buy_car'] = {}

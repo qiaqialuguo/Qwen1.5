@@ -25,17 +25,17 @@ REACT_PROMPT_NAME = """Answer the following questions as best you can. You have 
 
 Use the following format:
 
-Question: the input question you must answer
+User: the input question you must answer
 Thought: you should always think about what to do，尽可能简短
 Action: name
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action
 ... (this Thought/Action/Action Input/Monitoring must repeat only once)
 Thought: I now know the final answer
-Final Answer: the final answer to the original input question，回答简短一些
+FeedbackToUser: the final answer to the original input question，回答简短一些
 
 Begin!
 
 api返回的结果是:_api_output_
 
-Question: {query}"""
+User: {query}"""

@@ -60,7 +60,7 @@ class ChatCompletionResponse(BaseModel):
 
 
 class ChatCompletionRequest(BaseModel):
-    model: Optional[str] = 'qwen-max'
+    model: Optional[str] = 'qwen2-72b-instruct'
     messages: List[dict]
     temperature: Optional[float] = None
     top_p: Optional[float] = None
@@ -90,7 +90,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
             # set the random seed, optional, default to 1234 if not set
             seed=random.randint(1, 10000),
             result_format='message',  # set the result to be "message" format.
-            api_key='sk-777003151b354aa6889b598f9ff666b4',
+            api_key='sk-dc5e9d4949394662a62a9cffbc2f63b4',
         )
         print(response.code)
         response = response.output.choices[0]['message']['content']
@@ -144,7 +144,7 @@ async def predict(
         seed=random.randint(1, 10000),  # set the random seed, optional, default to 1234 if not set
         result_format='message',  # set the result to be "message"  format.
         stream=True,
-        api_key='sk-777003151b354aa6889b598f9ff666b4',
+        api_key='sk-dc5e9d4949394662a62a9cffbc2f63b4',
         output_in_full=True,  # get streaming output incrementally
     )
     current_length = 0

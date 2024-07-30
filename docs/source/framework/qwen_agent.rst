@@ -81,7 +81,7 @@ tools and quickly develop an agent that uses tools.
 
    messages = []
    while True:
-       query = input('user question: ')
+       query = input('user User: ')
        messages.append({'role': 'user', 'content': query})
        response = []
        for response in bot.run(messages=messages):

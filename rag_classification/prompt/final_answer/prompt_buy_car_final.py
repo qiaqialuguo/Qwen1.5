@@ -7,10 +7,10 @@ TOOL_BUY_CAR_FINAL = [
         'name_for_model':
             'buy_car',
         'description_for_model': "这是一个给用户推荐车的工具，在用户想要买车或找车时使用这个工具，请注意Monitoring返回的内容，"
-                                 "如果说需要继续询问用户的时候就问用户信息"
+                                 "如果说需要继续询问用户的时候就问用户信息，你的返回只能有一个FeedbackToUser"
                                  "对车的预期包含价位/预算（price），车型分类（vehicle_classification），"
                                  "能源形式（energy_type），品牌类型（brand_type），车型级别（vehicle_size），座位数（number_of_seats），"
-                                 "车门数（number_of_doors），车辆厢数（number_of_compartments），车辆品牌名称（vehicle_brand_name）。",
+                                 "车门数（number_of_doors），车辆厢数（number_of_compartments）。",
         'parameters': [{
             "name": "price",
             "type": "string",
@@ -52,12 +52,6 @@ TOOL_BUY_CAR_FINAL = [
             "type": "string",
             "description": "车辆厢数可以是两厢，三厢或不限，可以多选，多选的话用英文逗号分隔",
             'required': False
-        }, {
-            "name": "vehicle_brand_name",
-            "type": "string",
-            "description": "品牌名称可以是奔驰，宝马，奥迪，日产，丰田，本田，福特，凯迪拉克，别克，标志，"
-                           "雪铁龙或不限，可以多选，多选的话用英文逗号分隔",
-            'required': False
         }],
         'tool_api': tool_wrapper_for_qwen_buy_car()
     }
@@ -71,17 +65,17 @@ REACT_PROMPT_BUY_CAR_FINAL = """Answer the following questions as best you can. 
 
 Use the following format:
 
-Question: the input question you must answer
+User: the input question you must answer
 Thought: you should always think about what to do
 Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question
+Thought: 我需要将Monitoring的内容返回给用户
+FeedbackToUser: 返回给用户Monitoring的内容，只返回一次
 
 Begin!
 
-Question: {query}
+User: {query}
 Thought:我将调用buy_car工具来获取车辆信息
 Action: buy_car
 Action Input:{Extracted_Json}

@@ -234,6 +234,7 @@ def use_api(response, already_known_user, user_id, session_id, question=None, or
     print('使用的工具：' + used_tool_meta[0]["name_for_model"])
     if question:
         action_input = question
+    print(action_input)
     api_output, already_known_user = used_tool_meta[0]["tool_api"](action_input, already_known_user,
                                                                    user_id, session_id, original_question)
     return api_output, already_known_user

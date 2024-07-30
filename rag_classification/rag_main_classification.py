@@ -79,7 +79,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
 
     global history_global
     # 处理消息
-    query, history, system, already_known_user = parse_messages(request.messages, request.user_id, history_global,
+    query, history, system, already_known_user = parse_messages(request.messages, request, history_global,
                                                                 cur, request.history)
 
     # already_known_user_global[request.user_id] = already_known_user
@@ -275,7 +275,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     message=ChatMessage(role='assistant', content=response),
                     finish_reason='stop',
                 )
-                await update_already_known_user(request.user_id, already_known_user, conn, cur)
+                await update_already_known_user(request, already_known_user, conn, cur)
                 # already_known_user_global[request.user_id] = already_known_user
                 return ChatCompletionResponse(model=request.model,
                                               choices=[choice_data],
@@ -290,7 +290,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                                               request.user_id))  # 组织prompt,需要当前场景字段，所以要在use_api清空场景之前
             api_output, already_known_user = use_api(response, already_known_user, request.user_id,request.session_id,
                                                      query)  # 抽取入参并执行api
-            await update_already_known_user(request.user_id, already_known_user, conn, cur)
+            await update_already_known_user(request, already_known_user, conn, cur)
             # already_known_user_global[request.user_id] = already_known_user
             prompt = prompt.replace('_api_output_', api_output)
             print(prompt)
@@ -312,7 +312,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     response = data['choices'][0]['message']['content']
                 else:
                     raise Exception("大模型返回错误")
-                response = response.split('Final Answer:')[-1].strip()
+                response = response.split('FeedbackToUser:')[-1].strip()
                 response = await after_call_model(already_known_user, conversation_scene, history, history_global,
                                                   query, request, response, start_mem, start_time, stop_words,
                                                   'direct_api')
@@ -372,12 +372,6 @@ async def create_chat_completion(request: ChatCompletionRequest):
             scene = already_known_user['scene']  # 在清空前获取场景
             Extracted_Json_already = deepcopy(already_known_user[scene])
             Extracted_Json_already.pop('userId') if 'userId' in Extracted_Json_already else None
-            api_output, already_known_user = use_api(response, already_known_user, request.user_id, request.session_id,
-                                                     Extracted_Json, query)  # 抽取入参并执行api
-            await update_already_known_user(request.user_id, already_known_user, conn, cur)
-            # already_known_user_global[request.user_id] = already_known_user
-            print('api返回结果：' + api_output)
-            logging_xianyi.debug('api返回结果：' + api_output, request.user_id)
             # 对结果整理话术
             try:
                 json.loads(Extracted_Json)
@@ -386,6 +380,13 @@ async def create_chat_completion(request: ChatCompletionRequest):
             print('json.load后Extracted_Json：'+Extracted_Json)
             logging_xianyi.debug(Extracted_Json, request.user_id)
             Extracted_Json = {**Extracted_Json_already, **json.loads(Extracted_Json)}
+            print('合并后json：'+str(Extracted_Json))
+            api_output, already_known_user = use_api(response, already_known_user, request.user_id, request.session_id,
+                                                     Extracted_Json, query)  # 抽取入参并执行api
+            await update_already_known_user(request, already_known_user, conn, cur)
+            # already_known_user_global[request.user_id] = already_known_user
+            print('api返回结果：' + api_output)
+            logging_xianyi.debug('api返回结果：' + api_output, request.user_id)
             # 清理value空值
             tmp_json = {}
             for key, value in Extracted_Json.items():
@@ -430,7 +431,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     response = data['choices'][0]['message']['content']
                 else:
                     raise Exception("大模型返回错误")
-                response = response.split('Final Answer:')[-1].strip()
+                response = response.split('FeedbackToUser:')[-1].strip()
                 response = await after_call_model(already_known_user, conversation_scene, history, history_global,
                                                   query, request, response, start_mem, start_time, stop_words,
                                                   'extract')
@@ -444,11 +445,11 @@ async def create_chat_completion(request: ChatCompletionRequest):
                                               object='chat.completion')
 
 
-async def update_already_known_user(user_id,already_known_user, conn, cur):
-    cur.execute("INSERT INTO qwen_already_known_user_global (user_id,already_known_user) "
-                "VALUES (%s,%s) "
-                "ON CONFLICT (user_id) DO UPDATE "
-                "SET already_known_user = EXCLUDED.already_known_user", [user_id, json.dumps(already_known_user)])
+async def update_already_known_user(request,already_known_user, conn, cur):
+    cur.execute("INSERT INTO qwen_already_known_user_global (user_id,already_known_user,session_id) "
+                "VALUES (%s,%s,%s) "
+                "ON CONFLICT (user_id,session_id) DO UPDATE "
+                "SET already_known_user = EXCLUDED.already_known_user", [request.user_id, json.dumps(already_known_user), request.session_id])
     conn.commit()
     cur.close()
     conn.close()
@@ -506,14 +507,13 @@ async def event_handler(already_known_user, conversation_scene, history, history
                         yield decoded_line[6:]
                     elif call_model_type in ['direct_api', 'extract']:
                         if is_final_answer:
-                            final_answer = buffer.split('Final Answer:')[-1].strip()
+                            final_answer = buffer.split('FeedbackToUser:')[-1].strip()
                             yield decoded_line[6:]
                         else:
-                            if 'Final Answer:' in buffer:
+                            if 'FeedbackToUser:' in buffer:
                                 is_final_answer = True
-                                if not buffer.endswith("Final Answer:"):
-                                    print(decoded_line[6:])
-                                    # 输出同一返回里Final Answer:后的内容
+                                if not buffer.endswith("FeedbackToUser:"):
+                                    # 输出同一返回里FeedbackToUser:后的内容
                                     data = json.loads(decoded_line[6:])
                                     # 处理 content 字段
                                     for choice in data['choices']:
@@ -574,7 +574,7 @@ async def after_call_model(already_known_user, conversation_scene, history, hist
     print('\033[1;44m', log_message, '\033[0m')
     logging_xianyi.debug(log_message, request.user_id)
     _gc(args=args, forced=True)
-    # response = response.split('Final Answer:')[-1]
+    # response = response.split('FeedbackToUser:')[-1]
     history.append((query, response))
     history_global[request.user_id] = history
     response = trim_stop_words(response, stop_words)

@@ -65,16 +65,16 @@ TOOLS = [
 ]
 TOOL_DESC = """{name_for_model}: Entering this scene with the {name_for_human} API. What is the {name_for_human} scene useful for? {description_for_model}."""
 
-REACT_PROMPT = """你现在要对用户的问题进行分类，只分类即可，不用解释，可供选择的场景类别有:
+REACT_PROMPT = """你现在要对用户的问题进行分类，只分类即可，不用解释，不用回答问题，可供选择的场景类别有:
 
 {tool_descs}
 
 Use the following format:
 
-Question: the input question you must classify
+User: the input question you must classify
 Thought: you should always think about what to do，尽可能简短
 Scene: the scene to enter, should be one of [{tool_names}]
 
 Begin!
 
-Question: {query}"""
+User: {query}"""

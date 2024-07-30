@@ -7,9 +7,11 @@ from logging_xianyi.logging_xianyi import logging_xianyi
 
 def tool_wrapper_for_qwen_used_car_valuation():
     def tool_(query, already_known_user, user_id, session_id, original_question=None):
-        try:
-            query = json.loads(re.search(r'\{.*?}', query, re.DOTALL).group(0))
-        except:
+        # try:
+        #     query = json.loads(re.search(r'\{.*?}', query, re.DOTALL).group(0))
+        # except:
+        #     query = {}
+        if query == '':
             query = {}
         # 换车的话清空之前的条件
         if ('vehicle_brand_name' in query or 'vehicle_series' in query):
@@ -22,10 +24,10 @@ def tool_wrapper_for_qwen_used_car_valuation():
         query = already_known_user['used_car_valuation']
         print('调用工具时的query:' + str(query))
         logging_xianyi.debug(query, user_id)
+        mapping_dict = {}
         if ('vehicle_brand_name' not in query or 'vehicle_series' not in query):
             missing_keys = [key for key in ['vehicle_brand_name', 'vehicle_series', ] if key not in query]
             already_list = [(key, value) for key, value in already_known_user['used_car_valuation'].items()]
-            mapping_dict = {}
             mapping_dict['vehicle_brand_name'] = '车辆品牌名称'
             mapping_dict['vehicle_series'] = '车系'
             mapping_dict['vehicle_model'] = '车型'
@@ -47,17 +49,18 @@ def tool_wrapper_for_qwen_used_car_valuation():
         # 处理响应
         if response.status_code == 200:
             # # 请求成功
-            # data = response.json()  # 获取响应数据，如果是 JSON 格式
-            # print(data)
-            # if 'success' == data['status']:
-            #     return (str(data['data'])+',本次估值使用的参数值是valuationUsageParameters里的具体value，请返回',
-            #             already_known_user)
-            # else:
-            #     # 请求失败
-            #     return '返回错误', already_known_user
-            return '_[DONE]_', already_known_user
+            data = response.json()  # 获取响应数据，如果是 JSON 格式
+            if 'success' == data['status']:
+                return '_[DONE]_', already_known_user
+            else:
+                # 请求失败
+                data = response.json()  # 获取响应数据，如果是 JSON 格式
+                del already_known_user['used_car_valuation'][data['message']]
+                missing_keys = [key for key in ['vehicle_brand_name', 'vehicle_series', ] if key not in already_known_user['used_car_valuation']]
+                missing_keys = [mapping_dict[item] if item in mapping_dict else item for item in missing_keys]
+                return f"正在给车辆估值，用户说的{' 和 '.join(missing_keys)}识别错误，让用户重新描述", already_known_user
+
         else:
-            # 请求失败
-            return '查询失败，请检查', already_known_user
+            return '返回错误', already_known_user
 
     return tool_

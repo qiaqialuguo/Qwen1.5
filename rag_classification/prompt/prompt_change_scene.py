@@ -59,7 +59,7 @@ TOOLS_CHANGE_SCENE = [
             'no_scene',
         'name_for_model':
             'no_scene',
-        'description_for_model': "当没有其他合适的场景,并且你知道答案时，进入这个场景",
+        'description_for_model': "当没有其他合适的场景,并且你知道答案时，进入这个场景,问候也属于这个场景，当用户问 你好 时需要切换到这个场景",
     }
 
 ]
@@ -71,7 +71,7 @@ REACT_PROMPT_CHANGE_SCENE = """你现在要根据上下文对用户的问题进�
 
 Use the following format，不用解释太多，输出切换到了什么场景即可:
 
-Question: the input question you must determine whether to switch scenes or not
+User: the input question you must determine whether to switch scenes or not
 Now_Scene:{now_scene}
 Thought: you should always think about what to do，尽可能简短
 Probability: The probability of transitioning to a new scene,like 10%,20%,30%,40%,50%,60%,70%,80%,90%,100%,etc.
@@ -79,4 +79,4 @@ New_Scene: the new scene to switch, should be one of [{tool_names}]
 
 Begin!
 
-Question: {query}"""
+User: {query}"""

@@ -7,9 +7,11 @@ from logging_xianyi.logging_xianyi import logging_xianyi
 
 def tool_wrapper_for_qwen_appointment():
     def tool_(query, already_known_user, user_id, session_id, original_question=None):
-        try:
-            query = json.loads(re.search(r'\{.*?}', query, re.DOTALL).group(0))
-        except:
+        # try:
+        #     query = json.loads(re.search(r'\{.*?}', query, re.DOTALL).group(0))
+        # except:
+        #     query = {}
+        if query == '':
             query = {}
         for key, value in query.items():
             if (isinstance(value, (str, int, float)) and

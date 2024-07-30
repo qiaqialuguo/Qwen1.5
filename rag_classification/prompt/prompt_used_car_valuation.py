@@ -8,7 +8,7 @@ TOOL_USED_CAR_VALUATION = [
             'used_car_valuation',
         'description_for_model': "这是一个给二手车估值的工具。当用户想对车辆进行估值或卖车的时候调用这个工具，"
                                  "返回的是评估出的车辆的价格，从用户说的问题中提取车辆信息，基于已知信息构建JSON，"
-                                 "用户没说信息就给空json，每次只提取Question中的信息，JSON里不要加注释，公里数用阿拉伯数字表示"
+                                 "用户没说信息就给空json，每次只提取User:中的信息，JSON里不要加注释，公里数用阿拉伯数字表示，你的回答中只能有一次Extracted_Json，不要重复说，"
                                  "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），"
                                  "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
                                  "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"
@@ -61,10 +61,10 @@ REACT_PROMPT_USED_CAR_VALUATION = """Extracting information as best you can,提�
 
 Use the following format,每种key(Question,Thought,Extracted_Json)最多只出现一次，不要重复输出，不要编例子:
 
-Question: the input information you must extract
+User: the input information you must extract
 Thought: you should always think about what to do，尽可能简短
-Extracted_Json: the extracting information with json formatted，只回复本次提取的信息即可，不用把历史说的消息也加上
+Extracted_Json: the extracting information with json formatted，只回复本次提取的信息即可，不要重复回复这个字段
 
 Begin!
 
-Question: {query}"""
+User: {query}"""

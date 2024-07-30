@@ -208,7 +208,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
             print('----------------')
             print("第一次response:" + response)
             print('----------------')
-            while "Final Answer:" not in response:  # 出现final Answer时结束
+            while "FeedbackToUser:" not in response:  # 出现final Answer时结束
                 api_output, already_known_user = use_api(response, already_known_user, request.user_id)  # 抽取入参并执行api
                 already_known_user_global[request.user_id] = already_known_user
                 api_output = str(api_output)  # 部分api工具返回结果非字符串格式需进行转化后输出
@@ -255,7 +255,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                   len(str(conversation)), '显存增加:',
                   (end_mem - start_mem) / 1024, 'G\033[0m')
     _gc(args=args, forced=True)
-    response = response.split('Final Answer:')[-1]
+    response = response.split('FeedbackToUser:')[-1]
     history.append((query, response))
     # history.append((query, api_output))  # api返回的放在后面，很重要
     history_global[request.user_id] = history

@@ -6,14 +6,14 @@ TOOL_BUY_CAR = [
             'buy_car',
         'name_for_model':
             'buy_car',
-        'description_for_model': "这是一个记录用户对车辆预期的工具，请你尝试从用户说的话中抽取出如下预期，基于已知信息构建JSON，用户没说信息就给空json，然后调用这个工具，"
+        'description_for_model': "这是一个记录用户对车辆预期的工具，请你尝试从用户说的话中抽取出如下预期，基于已知信息构建JSON，用户没说信息就给空json，然后调用这个工具，你的回答中只能有一次Extracted_Json，不要重复说，"
                                  "对车的预期包含价位/预算（price），车型分类（vehicle_classification），"
                                  "能源形式（energy_type），品牌类型（brand_type），车型级别（vehicle_size），座位数（number_of_seats），"
-                                 "车门数（number_of_doors），车辆厢数（number_of_compartments），车辆品牌名称（vehicle_brand_name）。",
+                                 "车门数（number_of_doors），车辆厢数（number_of_compartments）。",
         'parameters': [{
             "name": "price",
             "type": "string",
-            "description": "价位(预算)的形式可以是X万，X万左右，X万到Y万，X万以内，X万以上或不限.其中X和Y为价格，用户没说价格的话需要追问",
+            "description": "价位(预算)的形式可以是X万，X万左右，X万到Y万，X万以内，X万以上或不限.其中X和Y为价格，用户没说价格的话需要追问,请用阿拉伯数字表示，比如10万，7万等",
             'required': False
         }, {
             "name": "vehicle_classification",
@@ -51,12 +51,6 @@ TOOL_BUY_CAR = [
             "type": "string",
             "description": "车辆厢数可以是两厢，三厢或不限，可以多选，多选的话用英文逗号分隔",
             'required': False
-        }, {
-            "name": "vehicle_brand_name",
-            "type": "string",
-            "description": "品牌名称可以是奔驰，宝马，奥迪，日产，丰田，本田，福特，凯迪拉克，别克，标志，"
-                           "雪铁龙或不限，可以多选，多选的话用英文逗号分隔",
-            'required': False
         }],
         'tool_api': tool_wrapper_for_qwen_buy_car()
     }
@@ -70,10 +64,10 @@ REACT_PROMPT_BUY_CAR = """Extracting information as best you can,提取即可，
 
 Use the following format,每种key(Question,Thought,Extracted_Json)最多只出现一次，不要重复输出，不要编例子:
 
-Question: the input information you must extract
+User: the input information you must extract
 Thought: you should always think about what to do，尽可能简短
-Extracted_Json: the extracting information with json formatted，只回复本次提取的信息即可，不用把历史说的消息也加上
+Extracted_Json: the extracting information with json formatted，只回复本次提取的信息即可，不要重复回复这个字段
 
 Begin!
 
-Question: {query}"""
+User: {query}"""

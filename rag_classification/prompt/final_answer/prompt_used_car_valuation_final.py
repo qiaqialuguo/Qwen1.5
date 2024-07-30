@@ -8,7 +8,7 @@ TOOL_USED_CAR_VALUATION_FINAL = [
             'used_car_valuation',
         'description_for_model': "这是一个给二手车估值的工具。当用户想对车辆进行估值或卖车的时候调用这个工具，"
                                  "返回的是评估出的车辆的价格,也有可能让用户继续回答一些信息，请注意Monitoring返回的内容，"
-                                 "如果说需要继续询问用户的时候就问用户信息"
+                                 "如果说需要继续询问用户返回的就是问句，你的返回只能有一个FeedbackToUser"
                                  "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），"
                                  "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
                                  "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"
@@ -61,18 +61,18 @@ REACT_PROMPT_USED_CAR_VALUATION_FINAL = """Answer the following questions as bes
 
 Use the following format:
 
-Question: the input question you must answer
+User: the input question you must answer
 Thought: you should always think about what to do
 Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action
 
-Thought: I now know the final answer
-Final Answer: the final answer to the original input question,在结果中不说是工具调用的，就当是你自己估值的，请你同时给出估值使用的参数值（valuationUsageParameters里的具体value）
+Thought: 我需要将Monitoring的内容返回给用户
+FeedbackToUser: 返回给用户Monitoring的内容，只返回一次，返回Monitoring的原话即可
 
 Begin!
 
-Question: {query}
+User: {query}
 Thought:我将调用used_car_valuation工具来对车辆进行估值
 Action: used_car_valuation
 Action Input:{Extracted_Json}

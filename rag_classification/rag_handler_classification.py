@@ -48,7 +48,7 @@ class ChatCompletionRequest(BaseModel):
     session_id: Optional[str] = 'default'
 
 
-def parse_messages(messages, user_id, history_global, cur, request_history):
+def parse_messages(messages, request, history_global, cur, request_history):
     if all(m.role != 'user' for m in messages):
         raise HTTPException(
             status_code=400,
@@ -97,7 +97,8 @@ def parse_messages(messages, user_id, history_global, cur, request_history):
     already_known_user = {'scene': ''}
     cur.execute("select already_known_user "
                 "from ai_voyage.public.qwen_already_known_user_global "
-                "where user_id='{}'".format(user_id))
+                "where user_id='{}' and session_id='{}'"
+                .format(request.user_id, request.session_id))
     already_known_user_get = cur.fetchone()
     print(already_known_user_get)
     if already_known_user_get:

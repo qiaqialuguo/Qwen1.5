@@ -16,18 +16,18 @@ vehicle_issues: Call this tool to interact with the vehicle_issues API. What is 
 
 Use the following format:
 
-Question: the input question you must answer
+User: the input question you must answer
 Thought: you should always think about what to do
 Action: the action to take, should be one of [vehicle_issues]
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action
 ... (this Thought/Action/Action Input/Monitoring can be repeated zero or more times)
 Thought: I now know the final answer
-Final Answer: the final answer to the original input question
+FeedbackToUser: the final answer to the original input question
 
 Begin!
 
-Question: 路边停车需要注意什么
+User: 路边停车需要注意什么
 Thought:我将调用vehicle_issues工具来获取问题答案
 Action: vehicle_issues
 Action Input:{}

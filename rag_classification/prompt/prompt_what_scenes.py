@@ -26,17 +26,17 @@ REACT_PROMPT_WHAT_SCENES = """Answer the following questions as best you can. Yo
 
 Use the following format:
 
-Question: the input question you must answer
+User: the input question you must answer
 Thought: you should always think about what to do
 Action: name
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action
 ... (this Thought/Action/Action Input/Monitoring must repeat only once)
 Thought: I now know the final answer，尽可能简短
-Final Answer: the final answer to the original input question
+FeedbackToUser: the final answer to the original input question
 
 Begin!
 
 api返回的结果是:_api_output_
 
-Question: {query}"""
+User: {query}"""
