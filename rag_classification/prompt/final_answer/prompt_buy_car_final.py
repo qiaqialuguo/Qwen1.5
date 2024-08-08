@@ -71,7 +71,7 @@ Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action
 Thought: 我需要将Monitoring的内容返回给用户
-FeedbackToUser: 返回给用户Monitoring的内容，只返回一次
+FeedbackToUser: 返回给用户Monitoring的内容，只返回一次,一定要有这个字段
 
 Begin!
 
