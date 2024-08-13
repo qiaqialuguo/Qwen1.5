@@ -17,25 +17,27 @@ def tool_wrapper_for_qwen_buy_car():
             # 模型抽取校验
             if (isinstance(value, (str, int, float)) and
                     (str(value) != '') and
-                    (str(value) and not any(substring in str(value) for substring in ('未指定', '未知')))):
+                    (str(value) and not any(substring in str(value) for substring in ('未指定', '未知', '无具体说明')))):
                 already_known_user['buy_car'][key] = value
         query = already_known_user['buy_car']
         print('调用工具时的query:' + str(query))
         logging_xianyi.debug(query, user_id)
-        if 'price' not in query or 'vehicle_classification' not in query or 'energy_type' not in query:
-            missing_keys = [key for key in ['price', 'vehicle_classification', 'energy_type'] if key not in query]
-            already_list = [(key, value) for key, value in already_known_user['buy_car'].items()]
-            mapping_dict = {}
-            mapping_dict['price'] = '价位'
-            mapping_dict['vehicle_classification'] = '车型分类'
-            mapping_dict['energy_type'] = '能源形式'
-            mapping_dict['brand_type'] = '品牌类型'
-            mapping_dict['vehicle_size'] = '车型级别'
-            mapping_dict['number_of_seats'] = '座位数'
-            mapping_dict['number_of_doors'] = '车门数'
-            mapping_dict['number_of_compartments'] = '车辆厢数'
-            missing_keys = [mapping_dict[item] if item in mapping_dict else item for item in missing_keys]
-            return f"正在给用户推荐车，需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
+        if not query:
+            return "没有提取出有效信息，继续跟用户聊聊问一下其他信息", already_known_user
+        # if 'price' not in query or 'vehicle_classification' not in query or 'energy_type' not in query:
+        #     missing_keys = [key for key in ['price', 'vehicle_classification', 'energy_type'] if key not in query]
+        #     already_list = [(key, value) for key, value in already_known_user['buy_car'].items()]
+        #     mapping_dict = {}
+        #     mapping_dict['price'] = '价位'
+        #     mapping_dict['vehicle_classification'] = '车型分类'
+        #     mapping_dict['energy_type'] = '能源形式'
+        #     mapping_dict['brand_type'] = '品牌类型'
+        #     mapping_dict['vehicle_size'] = '车型级别'
+        #     mapping_dict['number_of_seats'] = '座位数'
+        #     mapping_dict['number_of_doors'] = '车门数'
+        #     mapping_dict['number_of_compartments'] = '车辆厢数'
+        #     missing_keys = [mapping_dict[item] if item in mapping_dict else item for item in missing_keys]
+        #     return f"正在给用户推荐车，需要继续询问用户{' 和 '.join(missing_keys)}", already_known_user
         already_known_user['buy_car'] = {}
         query['userId'] = user_id
         query['sessionId'] = session_id

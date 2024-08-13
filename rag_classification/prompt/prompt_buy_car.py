@@ -6,50 +6,43 @@ TOOL_BUY_CAR = [
             'buy_car',
         'name_for_model':
             'buy_car',
-        'description_for_model': "这是一个记录用户对车辆预期的工具，请你尝试从用户说的话中抽取出如下预期，基于已知信息构建JSON，用户没说信息就给空json，然后调用这个工具，你的回答中只能有一次Extracted_Json，不要重复说，"
-                                 "对车的预期包含价位/预算（price），车型分类（vehicle_classification），"
-                                 "能源形式（energy_type），品牌类型（brand_type），车型级别（vehicle_size），座位数（number_of_seats），"
-                                 "车门数（number_of_doors），车辆厢数（number_of_compartments）。",
+        'description_for_model': "这是一个记录用户对车辆预期的工具，请你尝试从最新的用户说的话中推测出适合用户的车辆特征，"
+                                 "不需要用户说具体的数值，"
+                                 "基于猜测的信息构建JSON，请尽量推测，发散思维，尽量不要给空json，"
+                                 "然后调用这个工具，你的回答中只能有一次Extracted_Json，不要重复说，"
+                                 "对车的预期包括但不限于价位/预算（price），车型分类（body_type），"
+                                 "能源形式（energy_type），品牌类型（brand_type），车型级别（vehicle_size）"
+                                 "，座位数（number_of_seats）等。",
         'parameters': [{
             "name": "price",
             "type": "string",
-            "description": "价位(预算)的形式可以是X万，X万左右，X万到Y万，X万以内，X万以上或不限.其中X和Y为价格，用户没说价格的话需要追问,请用阿拉伯数字表示，比如10万，7万等",
+            "description": "价位(预算)的形式可以是X万，X万左右，X万到Y万，X万以内，X万以上.其中X和Y为价格，请用阿拉伯数字表示，如果价格很模糊要把它规整成一个具体价格，比如10万，7万等",
             'required': False
         }, {
-            "name": "vehicle_classification",
+            "name": "body_type",
             "type": "string",
-            "description": "车型分类可以是轿车、MPV、SUV或不限，可以多选，多选的话用英文逗号分隔，用户没说车型分类的话需要追问",
+            "description": "车型分类可以是轿车、MPV、SUV，可以多选，多选的话用英文逗号分隔",
             'required': False
         }, {
             "name": "energy_type",
             "type": "string",
-            "description": "能源类型可以是新能源车，燃油车，混合动力车或不限，可以多选，多选的话用英文逗号分隔，用户没说能源类型的话需要追问,用户说新能源时需要调用这个工具",
+            "description": "能源类型可以是新能源车，燃油车，混合动力车，可以多选，多选的话用英文逗号分隔",
             'required': False
         }, {
             "name": "brand_type",
             "type": "string",
-            "description": "品牌类型可以是豪华，合资，国产，新势力或不限，可以多选，多选的话用英文逗号分隔，没说品牌类型需要追问",
+            "description": "品牌类型可以是豪华，合资，国产，新势力，可以多选，多选的话用英文逗号分隔，没说品牌类型需要追问",
             'required': False
         }, {
             "name": "vehicle_size",
             "type": "string",
             "description": "车型级别可以是微型车/A00级，小型车/A0级，紧凑型车/A级，中型车/B级，中大型车/C级，"
-                           "大型车/D级或不限，可以多选，多选的话用英文逗号分隔",
+                           "大型车/D级，可以多选，多选的话用英文逗号分隔",
             'required': False
         }, {
             "name": "number_of_seats",
             "type": "string",
-            "description": "座位数可以是2座，4座，5座，6座，7座，7座以上或不限，可以多选，多选的话用英文逗号分隔",
-            'required': False
-        }, {
-            "name": "number_of_doors",
-            "type": "string",
-            "description": "车门数可以是两门，三门，四门，五门或不限，可以多选，多选的话用英文逗号分隔",
-            'required': False
-        }, {
-            "name": "number_of_compartments",
-            "type": "string",
-            "description": "车辆厢数可以是两厢，三厢或不限，可以多选，多选的话用英文逗号分隔",
+            "description": "座位数可以是2座，4座，5座，6座，7座，7座以上，可以多选，多选的话用英文逗号分隔",
             'required': False
         }],
         'tool_api': tool_wrapper_for_qwen_buy_car()
