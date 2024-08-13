@@ -11,8 +11,8 @@ TOOL_BUY_CAR = [
                                  "基于猜测的信息构建JSON，请尽量推测，发散思维，尽量不要给空json，"
                                  "然后调用这个工具，你的回答中只能有一次Extracted_Json，不要重复说，"
                                  "对车的预期包括但不限于价位/预算（price），车型分类（body_type），"
-                                 "能源形式（energy_type），品牌类型（brand_type），车型级别（vehicle_size）"
-                                 "，座位数（number_of_seats）等。",
+                                 "能源形式（energy_type），品牌类型（brand_type），车型级别（vehicle_size），"
+                                 "座位数（number_of_seats），车辆标签（vehicle_labels）等。",
         'parameters': [{
             "name": "price",
             "type": "string",
@@ -43,6 +43,11 @@ TOOL_BUY_CAR = [
             "name": "number_of_seats",
             "type": "string",
             "description": "座位数可以是2座，4座，5座，6座，7座，7座以上，可以多选，多选的话用英文逗号分隔",
+            'required': False
+        }, {
+            "name": "vehicle_labels",
+            "type": "string",
+            "description": "车辆标签可以是内饰好,外观好,性价比高,空间大,驾驶感受好，可以多选，多选的话用英文逗号分隔",
             'required': False
         }],
         'tool_api': tool_wrapper_for_qwen_buy_car()
