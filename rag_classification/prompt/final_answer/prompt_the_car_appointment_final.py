@@ -7,7 +7,7 @@ TOOL_THE_CAR_APPOINTMENT_FINAL = [
         'name_for_model':
             'the_car_appointment',
         'description_for_model':
-            "用户预约车辆服务时使用这个工具，工具会在4s店进行真实预约,不要把json格式给用户,不用举格式的例子，你的返回只能有一个FeedbackToUser，预约信息包括预约时间（appointment_time），车辆维护类型"
+            "用户预约车辆服务时使用这个工具，工具会在4s店进行真实预约,不要把json格式给用户,不用举格式的例子，你的返回只能有一个FeedbackToUsers，预约信息包括预约时间（appointment_time），车辆维护类型"
             "（vehicle_maintenance_type），"
             "4s店名称（automobile_sales_service_shop_name），"
             "4s店地址（automobile_sales_service_shop_address），用户想要预约时调用这个工具。其中预约时间是必填",
@@ -51,7 +51,7 @@ Action Input: the input to the action with json formatted
 Monitoring: the result of the action
 
 Thought: 我需要将Monitoring的内容返回给用户
-FeedbackToUser: 返回给用户Monitoring的内容，只返回一次,一定要有这个字段
+FeedbackToUsers: 返回给用户Monitoring的内容，只返回一次,一定要有这个字段
 
 Begin!
 

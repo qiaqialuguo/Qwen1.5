@@ -24,6 +24,17 @@ def tool_wrapper_for_qwen_buy_car():
         logging_xianyi.debug(query, user_id)
         if not query:
             return "没有提取出有效信息，继续跟用户聊聊问一下其他信息", already_known_user
+        if 'vehicle_labels' in query:
+            # 原始字符串
+            source_str = query['vehicle_labels']
+            reference_str = '内饰好,外观好,性价比高,空间大,驾驶感受好'
+            # 将字符串分割为列表
+            source_list = source_str.split(',')
+            reference_list = reference_str.split(',')
+            # 保留在参考列表中的内容
+            filtered_list = [item for item in source_list if item in reference_list]
+            # 将保留的内容拼接回字符串
+            query['vehicle_labels'] = ','.join(filtered_list)
         # if 'price' not in query or 'vehicle_classification' not in query or 'energy_type' not in query:
         #     missing_keys = [key for key in ['price', 'vehicle_classification', 'energy_type'] if key not in query]
         #     already_list = [(key, value) for key, value in already_known_user['buy_car'].items()]

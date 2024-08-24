@@ -73,7 +73,7 @@ Action Input: the input to the action with json formatted
 Monitoring: the result of the action
 ... (this Thought/Action/Action Input/Monitoring must repeat only once)
 Thought: I now know the final answer
-FeedbackToUser: the final answer to the original input question
+FeedbackToUsers: the final answer to the original input question
 
 Begin!
 

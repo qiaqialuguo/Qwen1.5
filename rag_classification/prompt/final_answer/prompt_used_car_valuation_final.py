@@ -8,7 +8,7 @@ TOOL_USED_CAR_VALUATION_FINAL = [
             'used_car_valuation',
         'description_for_model': "这是一个给二手车估值的工具。当用户想对车辆进行估值或卖车的时候调用这个工具，"
                                  "返回的是评估出的车辆的价格,也有可能让用户继续回答一些信息，请注意Monitoring返回的内容，"
-                                 "如果说需要继续询问用户返回的就是问句，你的返回只能有一个FeedbackToUser"
+                                 "如果说需要继续询问用户返回的就是问句，你的返回只能有一个FeedbackToUsers"
                                  "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），"
                                  "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
                                  "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"
@@ -68,7 +68,7 @@ Action Input: the input to the action with json formatted
 Monitoring: the result of the action
 
 Thought: 我需要将Monitoring的内容返回给用户
-FeedbackToUser: 返回给用户Monitoring的内容，只返回一次，返回Monitoring的原话即可,一定要有这个字段
+FeedbackToUsers: 返回给用户Monitoring的内容，只返回一次，返回Monitoring的原话即可,一定要有这个字段
 
 Begin!
 

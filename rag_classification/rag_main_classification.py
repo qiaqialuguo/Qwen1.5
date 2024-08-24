@@ -312,7 +312,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     response = data['choices'][0]['message']['content']
                 else:
                     raise Exception("大模型返回错误")
-                response = response.split('FeedbackToUser:')[-1].strip()
+                response = response.split('FeedbackToUsers:')[-1].strip()
                 response = await after_call_model(already_known_user, conversation_scene, history, history_global,
                                                   query, request, response, start_mem, start_time, stop_words,
                                                   'direct_api')
@@ -349,6 +349,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 response = data['choices'][0]['message']['content']
             else:
                 raise Exception("大模型返回错误")
+            i = response.find('Suspected_Reason:')  # 找最先出现的Suspected_Reason
             j = response.find('Extracted_Json:')  # 找最先出现的Extracted_Json
             classify_time = time.time()
             classify_mem = GPUtil.getGPUs()[0].memoryUsed
@@ -368,6 +369,11 @@ async def create_chat_completion(request: ChatCompletionRequest):
             # if 0 <= j:
             Extracted_Json = response[j + len('\nExtracted_Json:'):].strip()
             Extracted_Json = Extracted_Json[:Extracted_Json.find('}') + 1]  # 不能嵌套json}
+            Suspected_Reason = ''
+            if i != -1:
+                Suspected_Reason = response[i + len('\nSuspected_Reason:'):].strip()
+                Suspected_Reason = Suspected_Reason[:Suspected_Reason.find('\nExtracted_Json:')]
+                print('Suspected_Reason:' + Suspected_Reason)
             print('Extracted_Json:'+Extracted_Json)
             scene = already_known_user['scene']  # 在清空前获取场景
             Extracted_Json_already = deepcopy(already_known_user[scene])
@@ -380,6 +386,8 @@ async def create_chat_completion(request: ChatCompletionRequest):
             print('json.load后Extracted_Json：'+Extracted_Json)
             logging_xianyi.debug(Extracted_Json, request.user_id)
             Extracted_Json = {**Extracted_Json_already, **json.loads(Extracted_Json)}
+            if i != -1:
+                Extracted_Json['suspected_reason'] = Suspected_Reason  # 改成首字母小写的
             print('合并后json：'+str(Extracted_Json))
             api_output, already_known_user = use_api(response, already_known_user, request.user_id, request.session_id,
                                                      Extracted_Json, query)  # 抽取入参并执行api
@@ -431,7 +439,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                     response = data['choices'][0]['message']['content']
                 else:
                     raise Exception("大模型返回错误")
-                response = response.split('FeedbackToUser:')[-1].strip()
+                response = response.split('FeedbackToUsers:')[-1].strip()
                 response = await after_call_model(already_known_user, conversation_scene, history, history_global,
                                                   query, request, response, start_mem, start_time, stop_words,
                                                   'extract')
@@ -507,13 +515,13 @@ async def event_handler(already_known_user, conversation_scene, history, history
                         yield decoded_line[6:]
                     elif call_model_type in ['direct_api', 'extract']:
                         if is_final_answer:
-                            final_answer = buffer.split('FeedbackToUser:')[-1].strip()
+                            final_answer = buffer.split('FeedbackToUsers:')[-1].strip()
                             yield decoded_line[6:]
                         else:
-                            if 'FeedbackToUser:' in buffer:
+                            if 'FeedbackToUsers:' in buffer:
                                 is_final_answer = True
-                                if not buffer.endswith("FeedbackToUser:"):
-                                    # 输出同一返回里FeedbackToUser:后的内容
+                                if not buffer.endswith("FeedbackToUsers:"):
+                                    # 输出同一返回里FeedbackToUsers:后的内容
                                     data = json.loads(decoded_line[6:])
                                     # 处理 content 字段
                                     for choice in data['choices']:
@@ -574,7 +582,7 @@ async def after_call_model(already_known_user, conversation_scene, history, hist
     print('\033[1;44m', log_message, '\033[0m')
     logging_xianyi.debug(log_message, request.user_id)
     _gc(args=args, forced=True)
-    # response = response.split('FeedbackToUser:')[-1]
+    # response = response.split('FeedbackToUsers:')[-1]
     history.append((query, response))
     history_global[request.user_id] = history
     response = trim_stop_words(response, stop_words)

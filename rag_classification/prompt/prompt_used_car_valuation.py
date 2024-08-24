@@ -12,7 +12,7 @@ TOOL_USED_CAR_VALUATION = [
                                  "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），"
                                  "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
                                  "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"
-                                 "车身颜色（vehicle_exterior_color）。",
+                                 "车况（vehicle_condition），车身颜色（vehicle_exterior_color）。",
         'parameters': [{
             "name": "vehicle_brand_name",
             "type": "string",
@@ -44,6 +44,11 @@ TOOL_USED_CAR_VALUATION = [
             "description": "车辆里程数是车辆行驶了多少公里，比如10000公里，40000公里，单位是公里，只能有一个值，公里数用阿拉伯数字表示",
             'required': False
         }, {
+            "name": "vehicle_condition",
+            "type": "string",
+            "description": "车况是优秀或良好，只能有一个值",
+            'required': False
+        }, {
             "name": "vehicle_exterior_color",
             "type": "string",
             "description": "车身颜色是车辆的颜色，只能有一个值",
@@ -59,7 +64,7 @@ REACT_PROMPT_USED_CAR_VALUATION = """Extracting information as best you can,提�
 
 {tool_descs}
 
-Use the following format,每种key(Question,Thought,Extracted_Json)最多只出现一次，不要重复输出，不要编例子:
+Use the following format,每种key(User,Thought,Extracted_Json)最多只出现一次，不要重复输出，不要编例子:
 
 User: the input information you must extract
 Thought: you should always think about what to do，尽可能简短

@@ -33,7 +33,7 @@ Action Input: the input to the action with json formatted
 Monitoring: the result of the action
 ... (this Thought/Action/Action Input/Monitoring must repeat only once)
 Thought: I now know the final answer，尽可能简短
-FeedbackToUser: the final answer to the original input question,一定要有这个字段
+FeedbackToUsers: the final answer to the original input question,一定要有这个字段
 
 Begin!
 
