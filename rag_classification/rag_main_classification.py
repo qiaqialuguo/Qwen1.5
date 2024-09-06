@@ -137,7 +137,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
                 response = data['choices'][0]['message']['content']
             else:
                 raise Exception("大模型返回错误")
-            i = response.rfind('\nScene:')
+            i = response.rfind('Scene:')
             classify_time = time.time()
             classify_mem = GPUtil.getGPUs()[0].memoryUsed
             # 构建日志记录信息
@@ -156,7 +156,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
             conversation.pop(len(conversation) - 1)
             # 如果正确分类
             if 0 <= i:
-                plugin_name = response[i + len('\nScene:'):].strip().split('\n')[0]
+                plugin_name = response[i + len('Scene:'):].strip().split('\n')[0]
                 already_known_user['scene'] = plugin_name
                 already_known_user['scene_time'] = time.time()  # 场景时间
             # 如果没正确分类
@@ -208,12 +208,12 @@ async def create_chat_completion(request: ChatCompletionRequest):
             logging_xianyi.debug('切换判断结果：' + response, request.user_id)
             # 删掉分类的prompt
             conversation.pop(len(conversation) - 1)
-            i = response.rfind('\nNew_Scene:')
-            j = response.rfind('\nProbability:')
+            i = response.rfind('New_Scene:')
+            j = response.rfind('Probability:')
             # 如果正确分类
             if 0 <= i:
                 # probability = response[j + len('\nProbability:'):].strip().split('\n')[0].split('%')[0]
-                plugin_name = response[i + len('\nNew_Scene:'):].strip().split('\n')[0]
+                plugin_name = response[i + len('New_Scene:'):].strip().split('\n')[0]
                 if (
                         # int(probability) >= 80 and
                         plugin_name != already_known_user['scene']):

@@ -1,4 +1,5 @@
 from rag_classification.api_tools.tool_used_car_valuation import tool_wrapper_for_qwen_used_car_valuation
+
 # todo You are ChatGPT, a large language model trained by OpenAI, based on the GPT-4 architecture. Knowledge cutoff: 2023-04 Current date: 2024-02-15
 TOOL_USED_CAR_VALUATION = [
     {
@@ -9,7 +10,7 @@ TOOL_USED_CAR_VALUATION = [
         'description_for_model': "这是一个给二手车估值的工具。当用户想对车辆进行估值或卖车的时候调用这个工具，"
                                  "返回的是评估出的车辆的价格，从用户说的问题中提取车辆信息，基于已知信息构建JSON，"
                                  "用户没说信息就给空json，每次只提取User:中的信息，JSON里不要加注释，公里数用阿拉伯数字表示，你的回答中只能有一次Extracted_Json，不要重复说，"
-                                 "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），"
+                                 "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），车辆年款（vehicle_model_year），"
                                  "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
                                  "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"
                                  "车况（vehicle_condition），车身颜色（vehicle_exterior_color）。",
@@ -23,6 +24,11 @@ TOOL_USED_CAR_VALUATION = [
             "type": "string",
             "description": "车系名称可以是X3，i3,X5，A6等任何车系，车系比较简略，只能有一个值",
             'required': False
+        }, {
+            "name": "vehicle_model_year",
+            "type": "string",
+            "description": "车辆年款，如2023款，2019款，2008款等，只能有一个值",
+            "required": False
         }, {
             "name": "vehicle_licensing_year",
             "type": "string",

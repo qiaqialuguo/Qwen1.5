@@ -62,7 +62,6 @@ REACT_PROMPT_USED_CAR_VALUATION_FINAL = """Answer the following questions as bes
 Use the following format:
 
 User: the input question you must answer
-Thought: you should always think about what to do
 Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action
@@ -73,7 +72,6 @@ FeedbackToUsers: 返回给用户Monitoring的内容，只返回一次，返回Mo
 Begin!
 
 User: {query}
-Thought:我将调用used_car_valuation工具来对车辆进行估值
 Action: used_car_valuation
 Action Input:{Extracted_Json}
 Monitoring:{api_output}

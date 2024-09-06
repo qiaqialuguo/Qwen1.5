@@ -53,7 +53,6 @@ REACT_PROMPT_BUY_CAR = """Extracting information as best you can,提取即可，
 Use the following format,不要循环输出下面的格式，不要编例子，也就是说你的输出中不要出现【User:】，Suspected_Reason,Extracted_Json也只能出现一次:
 
 User: the input information you must extract
-
 Suspected_Reason:向用户解释为什么这样猜测,用 您 做称呼，客气一点，不要跟用户说参数和json相关的事情，不要说在json里构建
 Extracted_Json: the extracting information with json formatted，只回复本次推理的信息即可，不要重复回复这个字段
 

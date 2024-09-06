@@ -93,7 +93,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
             seed=random.randint(1, 10000),
             result_format='message',  # set the result to be "message" format.
             api_key='sk-dc5e9d4949394662a62a9cffbc2f63b4',
-            stop=['User:', 'Action:', 'Action Input:'],
+            stop=['User:', 'Action:', 'Action Input:', 'Think:'],
         )
         print(response.code)
         response = response.output.choices[0]['message']['content']
@@ -149,7 +149,7 @@ async def predict(
         stream=True,
         api_key='sk-dc5e9d4949394662a62a9cffbc2f63b4',
         output_in_full=True,  # get streaming output incrementally
-        stop=['User:', 'Action:', 'Action Input:'],
+        stop=['User:', 'Action:', 'Action Input:', 'Think:'],
     )
     current_length = 0
     for response in responses:

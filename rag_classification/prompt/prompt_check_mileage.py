@@ -26,12 +26,6 @@ REACT_PROMPT_CHECK_MILEAGE = """Answer the following questions as best you can. 
 Use the following format:
 
 User: the input question you must answer
-Thought: you should always think about what to do，尽可能简短
-Action: check_mileage
-Action Input: the input to the action with json formatted
-Monitoring: the result of the action
-... (this Thought/Action/Action Input/Monitoring must repeat only once)
-Thought: I now know the final answer
 FeedbackToUsers: the final answer to the original input question,一定要有这个字段
 
 Begin!
