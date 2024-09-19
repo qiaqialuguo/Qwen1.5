@@ -14,9 +14,10 @@ from transformers import AutoTokenizer, AutoModelForCausalLM,TextIteratorStreame
 from fastapi import HTTPException
 from pydantic import BaseModel, Field
 from typing import Dict, List, Literal, Optional, Union, Iterable
+from rag_classification.rag_tools_classification import StopWordsLogitsProcessor
 
 from transformers import PreTrainedTokenizerFast, LogitsProcessor
-
+from transformers.generation.logits_process import LogitsProcessorList
 
 def _gc(args, forced: bool = False):
     if args.disable_gc and not forced:
@@ -88,6 +89,7 @@ class ChatCompletionRequest(BaseModel):
     do_sample: Optional[bool] = False
 
 
+
 @app.post('/v1/chat/completions', response_model=ChatCompletionResponse)
 async def create_chat_completion(request: ChatCompletionRequest):
     global model, tokenizer
@@ -98,6 +100,15 @@ async def create_chat_completion(request: ChatCompletionRequest):
     model.generation_config.do_sample = request.do_sample
     is_stream = request.stream
 
+    stop_words = ['User:', 'Action:', 'Action Input:', 'Think:','Thought:']
+    # if request.use_rag:
+    stop_words_ids = [tokenizer.encode(_) for _ in stop_words]
+    stop_words_logits_processor = StopWordsLogitsProcessor(
+        stop_words_ids=stop_words_ids,
+        eos_token_id=model.generation_config.eos_token_id,
+    )
+    logits_processor = LogitsProcessorList([stop_words_logits_processor])
+
     if is_stream:
         print(conversation)
         inputs = tokenizer.apply_chat_template(
@@ -107,6 +118,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
         )
         generate = predict(inputs.to('cuda'),
                            request.model,
+                           logits_processor,
                            )
         s = handler(generate)
         return EventSourceResponse(s, media_type='text/event-stream')
@@ -122,6 +134,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
         generated_ids = model.generate(
             model_inputs.input_ids,
             max_new_tokens=1024,
+            logits_processor=logits_processor
         )
         generated_ids = [
             output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
@@ -160,6 +173,7 @@ async def handler(generate):
 async def predict(
         inputs,
         model_id,
+logits_processor
 ):
     global model, tokenizer
     choice_data = ChatCompletionResponseStreamChoice(
@@ -169,7 +183,7 @@ async def predict(
                                    object='chat.completion.chunk')
     yield '{}'.format(_dump_json(chunk, exclude_unset=True))
 
-    streamer = TextIteratorStreamer(tokenizer=tokenizer, skip_prompt=True, timeout=60.0, skip_special_tokens=True)
+    streamer = TextIteratorStreamer(tokenizer=tokenizer, skip_prompt=True, timeout=60.0, skip_special_tokens=True,logits_processor=logits_processor)
     generation_kwargs = dict(
         input_ids=inputs,
         streamer=streamer,
@@ -210,7 +224,7 @@ def get_args():
         '-c',
         '--checkpoint-path',
         type=str,
-        default='/opt/large-model/qwen/qwen1.5/Qwen1.5-14B-Chat/',
+        default='/opt/large-model/qwen/qwen1.5/Qwen2.5-14B-Instruct/',
         help='Checkpoint name or path, default to %(default)r',
     )
     parser.add_argument('--server-port',

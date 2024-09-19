@@ -10,52 +10,52 @@ TOOL_USED_CAR_VALUATION = [
         'description_for_model': "这是一个给二手车估值的工具。当用户想对车辆进行估值或卖车的时候调用这个工具，"
                                  "返回的是评估出的车辆的价格，从用户说的问题中提取车辆信息，基于已知信息构建JSON，"
                                  "用户没说信息就给空json，每次只提取User:中的信息，JSON里不要加注释，公里数用阿拉伯数字表示，你的回答中只能有一次Extracted_Json，不要重复说，"
-                                 "对车的描述包含 车辆品牌名称（vehicle_brand_name），车系（vehicle_series），车辆年款（vehicle_model_year），"
-                                 "车辆上牌时年份（vehicle_licensing_year），车辆上牌时月份（vehicle_licensing_month），"
-                                 "车辆上牌地所在城市（vehicle_licensing_city），车辆里程数（vehicle_mileage），"
-                                 "车况（vehicle_condition），车身颜色（vehicle_exterior_color）。",
+                                 "对车的描述包含 车辆品牌名称（brand），车系（series），车辆年款（modelYear），"
+                                 "车辆上牌时年份（licensingYear），车辆上牌时月份（licensingMonth），"
+                                 "车辆上牌地所在城市（city），车辆里程数（mileage），"
+                                 "车况（condition），车身颜色（color）。",
         'parameters': [{
-            "name": "vehicle_brand_name",
+            "name": "brand",
             "type": "string",
             "description": "品牌名称，只能有一个值,为空的话不输出",
             'required': False
         }, {
-            "name": "vehicle_series",
+            "name": "series",
             "type": "string",
             "description": "车系名称可以是X3，i3,X5，A6等任何车系，车系比较简略，只能有一个值,为空的话不输出",
             'required': False
         }, {
-            "name": "vehicle_model_year",
+            "name": "modelYear",
             "type": "string",
             "description": "车辆年款，如2023款，2019款，2008款等，只能有一个值,为空的话不输出",
             "required": False
         }, {
-            "name": "vehicle_licensing_year",
+            "name": "licensingYear",
             "type": "string",
             "description": "车辆上牌年份是一个具体年份，比如2016年,2020年,2021年,2023年等，只能有一个值,为空的话不输出",
             'required': False
         }, {
-            "name": "vehicle_licensing_month",
+            "name": "licensingMonth",
             "type": "string",
             "description": "车辆上牌月份是一个具体月份，比如1月,2月,11月等，只能有一个值,为空的话不输出",
             'required': False
         }, {
-            "name": "vehicle_licensing_city",
+            "name": "city",
             "type": "string",
             "description": "车辆上牌地所在城市是一个城市名，问清楚用户是在哪个城市，只能有一个值,为空的话不输出",
             'required': False
         }, {
-            "name": "vehicle_mileage",
+            "name": "mileage",
             "type": "string",
             "description": "车辆里程数是车辆行驶了多少公里，比如10000公里，40000公里，单位是公里，只能有一个值，公里数用阿拉伯数字表示,为空的话不输出",
             'required': False
         }, {
-            "name": "vehicle_condition",
+            "name": "condition",
             "type": "string",
             "description": "车况是优秀或良好，只能有一个值,为空的话不输出",
             'required': False
         }, {
-            "name": "vehicle_exterior_color",
+            "name": "color",
             "type": "string",
             "description": "车身颜色是车辆的颜色，只能有一个值,为空的话不输出",
             'required': False

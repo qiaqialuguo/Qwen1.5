@@ -13,6 +13,17 @@ def tool_wrapper_for_qwen_used_car_valuation():
         #     query = {}
         if query == '':
             query = {}
+        field_dict = {}
+        field_dict['brand'] = 'vehicle_brand_name'
+        field_dict['series'] = 'vehicle_series'
+        field_dict['modelYear'] = 'vehicle_model_year'
+        field_dict['licensingYear'] = 'vehicle_licensing_year'
+        field_dict['licensingMonth'] = 'vehicle_licensing_month'
+        field_dict['city'] = 'vehicle_licensing_city'
+        field_dict['mileage'] = 'vehicle_mileage'
+        field_dict['condition'] = 'vehicle_condition'
+        field_dict['color'] = 'vehicle_exterior_color'
+        query = {field_dict.get(k, k): v for k, v in query.items()}
         # 换车的话清空之前的条件
         if ('vehicle_brand_name' in query or 'vehicle_series' in query):
             already_known_user['used_car_valuation'] = {}
@@ -30,11 +41,12 @@ def tool_wrapper_for_qwen_used_car_valuation():
             already_list = [(key, value) for key, value in already_known_user['used_car_valuation'].items()]
             mapping_dict['vehicle_brand_name'] = '车辆品牌名称'
             mapping_dict['vehicle_series'] = '车系'
-            mapping_dict['vehicle_model'] = '车型'
+            mapping_dict['vehicle_model_year'] = '车辆年款'
             mapping_dict['vehicle_licensing_year'] = '车辆上牌时年份'
             mapping_dict['vehicle_licensing_month'] = '车辆上牌时月份'
             mapping_dict['vehicle_licensing_city'] = '车辆上牌地所在城市'
             mapping_dict['vehicle_mileage'] = '车辆里程数'
+            mapping_dict['vehicle_condition'] = '车况'
             mapping_dict['vehicle_exterior_color'] = '车身颜色'
             missing_keys = [mapping_dict[item] if item in mapping_dict else item for item in missing_keys]
             # already_list = [mapping_dict[item] if item in mapping_dict else item for item in already_list]

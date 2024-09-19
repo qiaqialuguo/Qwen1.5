@@ -54,6 +54,7 @@ app.add_middleware(
 async def create_chat_completion(request: ChatCompletionRequest):
     logging_xianyi.debug('-----------new request--------------------------------', request.user_id)
     global model, tokenizer
+    start_time = time.time()
     # 连接到 PostgreSQL 数据库
     conn = psycopg2.connect(
         dbname="ai_voyage",
@@ -64,7 +65,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
     cur = conn.cursor()
 
     weekdays = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期天"]
-    stop_words = []
+    stop_words = ['Thought:']
     if 'Monitoring:' not in stop_words:
         stop_words.append('Monitoring:')
     if 'Monitoring:\n' not in stop_words:
@@ -105,7 +106,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
             datetime.now()) +
               "  \033[0m\033[1;44m模式：非流式，使用rag\033[0m")
         logging_xianyi.debug('开始提问，生成答案中...模式：非流式，使用rag', request.user_id)
-        start_time = time.time()
+        # start_time = time.time()
         start_mem = GPUtil.getGPUs()[0].memoryUsed
         prompt = ''
         response = ''
@@ -572,12 +573,13 @@ async def after_call_model(already_known_user, conversation_scene, history, hist
     print(already_known_user)
     logging_xianyi.debug(already_known_user, request.user_id)
     # 构建日志记录信息
-    log_message = '回答完毕，耗时： {} 答案长度： {} 每秒字数: {} 输入长度: {} 显存增加: {} G'.format(
+    log_message = '回答完毕，耗时： {} 答案长度： {} 每秒字数: {} 输入长度: {} 显存增加: {} G {}'.format(
         end_time - start_time,
         len(response),
         '时间没变' if end_time == start_time else len(response) / (end_time - start_time),
         len(str(conversation_scene)),
-        (end_mem - start_mem) / 1024
+        (end_mem - start_mem) / 1024,
+        str(datetime.now())
     )
     print('\033[1;44m', log_message, '\033[0m')
     logging_xianyi.debug(log_message, request.user_id)
