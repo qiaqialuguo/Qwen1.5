@@ -72,8 +72,8 @@ REACT_PROMPT = """你现在要对用户的问题进行分类，只分类即可�
 Use the following format:
 
 User: the input question you must classify
-Thought: you should always think about what to do，尽可能简短
 Scene: the scene to enter, should be one of [{tool_names}]
+Thought: you should always think about what to do，尽可能简短
 
 Begin!
 

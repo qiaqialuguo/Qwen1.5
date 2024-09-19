@@ -47,8 +47,8 @@ Action: the action to take, should be one of [{tool_names}]
 Action Input: the input to the action with json formatted
 Monitoring: the result of the action
 ... (this Thought/Action/Action Input/Monitoring can be repeated only once)
-Thought: 我需要将Monitoring的内容返回给用户
 FeedbackToUsers: the final answer to the original input question,一定要有这个字段
+Thought: 我需要将Monitoring的内容返回给用户
 
 Begin!
 

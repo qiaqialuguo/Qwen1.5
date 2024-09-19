@@ -17,47 +17,47 @@ TOOL_USED_CAR_VALUATION = [
         'parameters': [{
             "name": "vehicle_brand_name",
             "type": "string",
-            "description": "品牌名称，只能有一个值",
+            "description": "品牌名称，只能有一个值,为空的话不输出",
             'required': False
         }, {
             "name": "vehicle_series",
             "type": "string",
-            "description": "车系名称可以是X3，i3,X5，A6等任何车系，车系比较简略，只能有一个值",
+            "description": "车系名称可以是X3，i3,X5，A6等任何车系，车系比较简略，只能有一个值,为空的话不输出",
             'required': False
         }, {
             "name": "vehicle_model_year",
             "type": "string",
-            "description": "车辆年款，如2023款，2019款，2008款等，只能有一个值",
+            "description": "车辆年款，如2023款，2019款，2008款等，只能有一个值,为空的话不输出",
             "required": False
         }, {
             "name": "vehicle_licensing_year",
             "type": "string",
-            "description": "车辆上牌年份是一个具体年份，比如2016年,2020年,2021年,2023年等，只能有一个值",
+            "description": "车辆上牌年份是一个具体年份，比如2016年,2020年,2021年,2023年等，只能有一个值,为空的话不输出",
             'required': False
         }, {
             "name": "vehicle_licensing_month",
             "type": "string",
-            "description": "车辆上牌月份是一个具体月份，比如1月,2月,11月等，只能有一个值",
+            "description": "车辆上牌月份是一个具体月份，比如1月,2月,11月等，只能有一个值,为空的话不输出",
             'required': False
         }, {
             "name": "vehicle_licensing_city",
             "type": "string",
-            "description": "车辆上牌地所在城市是一个城市名，问清楚用户是在哪个城市，只能有一个值",
+            "description": "车辆上牌地所在城市是一个城市名，问清楚用户是在哪个城市，只能有一个值,为空的话不输出",
             'required': False
         }, {
             "name": "vehicle_mileage",
             "type": "string",
-            "description": "车辆里程数是车辆行驶了多少公里，比如10000公里，40000公里，单位是公里，只能有一个值，公里数用阿拉伯数字表示",
+            "description": "车辆里程数是车辆行驶了多少公里，比如10000公里，40000公里，单位是公里，只能有一个值，公里数用阿拉伯数字表示,为空的话不输出",
             'required': False
         }, {
             "name": "vehicle_condition",
             "type": "string",
-            "description": "车况是优秀或良好，只能有一个值",
+            "description": "车况是优秀或良好，只能有一个值,为空的话不输出",
             'required': False
         }, {
             "name": "vehicle_exterior_color",
             "type": "string",
-            "description": "车身颜色是车辆的颜色，只能有一个值",
+            "description": "车身颜色是车辆的颜色，只能有一个值,为空的话不输出",
             'required': False
         }],
         'tool_api': tool_wrapper_for_qwen_used_car_valuation()
@@ -73,8 +73,8 @@ REACT_PROMPT_USED_CAR_VALUATION = """Extracting information as best you can,提�
 Use the following format,每种key(User,Thought,Extracted_Json)最多只出现一次，不要重复输出，不要编例子:
 
 User: the input information you must extract
-Thought: you should always think about what to do，尽可能简短
 Extracted_Json: the extracting information with json formatted，只回复本次提取的信息即可，不要重复回复这个字段
+Thought: you should always think about what to do，尽可能简短
 
 Begin!
 

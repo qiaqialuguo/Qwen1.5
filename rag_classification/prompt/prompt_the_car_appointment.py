@@ -45,8 +45,8 @@ REACT_PROMPT_THE_CAR_APPOINTMENT = """Extracting information as best you can,提
 Use the following format,每种key(Question,Thought,Extracted_Json)最多只出现一次，不要重复输出，不要编例子:
 
 User: the input information you must extract
-Thought: you should always think about what to do，尽可能简短
 Extracted_Json: the extracting information with json formatted，只回复本次提取的信息即可，不用把历史说的消息也加上
+Thought: you should always think about what to do，尽可能简短
 
 Begin!
 

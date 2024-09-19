@@ -26,8 +26,8 @@ REACT_PROMPT_SEARCH_WEB = """Answer the following questions as best you can. You
 Use the following format:
 
 User: the input question you must answer
-Thought: you should always think about what to do，尽可能简短
 FeedbackToUsers: the final answer to the original input question,一定要有这个字段
+Thought: you should always think about what to do，尽可能简短
 
 Begin!
 
