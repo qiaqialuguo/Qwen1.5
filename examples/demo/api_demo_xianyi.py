@@ -229,7 +229,7 @@ def get_args():
     )
     parser.add_argument('--server-port',
                         type=int,
-                        default=10029,
+                        default=10039,
                         help='Demo server port.')
     parser.add_argument(
         '--server-name',
